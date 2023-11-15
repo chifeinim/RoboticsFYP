@@ -8,3 +8,6 @@ import numpy as np
 import random
 
 BP = brickpi3.BrickPi3()
+
+rightMotor = BP.PORT_C
+leftMotor = BP.PORT_B
