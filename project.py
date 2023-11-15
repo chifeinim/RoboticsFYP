@@ -11,3 +11,6 @@ BP = brickpi3.BrickPi3()
 
 rightMotor = BP.PORT_C
 leftMotor = BP.PORT_B
+
+#constants
+wheel_radius = 2.8 #cm
