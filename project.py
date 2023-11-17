@@ -15,8 +15,9 @@ leftMotor = BP.PORT_B
 # constants
 pi = math.pi
 wheel_radius = 2.8 # cm
+wheel_distance = 14.25 # cm
 floor_modifier_move = 1.0 # 1.0 = hard floor, ? = carpet
-floor_modifier_rotate = 1.0 # 1.0 = hard floor, ? = carpet
+floor_modifier_rotate = 1.1 # 1.1 = hard floor, ? = carpet
 
 # length: cm
 def moveStraight(length):
@@ -27,8 +28,8 @@ def moveStraight(length):
 
 		BP.offset_motor_encoder(rightMotor, BP.get_motor_encoder(rightMotor))
 		BP.offset_motor_encoder(leftMotor, BP.get_motor_encoder(leftMotor))
-		BP.set_motor_limits(rightMotor, 70, 300)
-		BP.set_motor_limits(leftMotor, 70, 300)
+		BP.set_motor_limits(rightMotor, 70, 360)
+		BP.set_motor_limits(leftMotor, 70, 360)
 		BP.set_motor_position(rightMotor, degrees)
 		BP.set_motor_position(leftMotor, degrees)
 
@@ -42,10 +43,33 @@ def moveStraight(length):
 	except IOError as error:
 		print(error)
 
+# angle: degrees
+def rotateAntiClockwise(angle):
+	try:
+		angle = angle * floor_modifier_rotate
+		time_delta = 3
+		angular_velocity = (1 / time_delta) * angle * wheel_distance / (2 * wheel_radius)
 
+		BP.offset_motor_encoder(rightMotor, BP.get_motor_encoder(rightMotor))
+		BP.offset_motor_encoder(leftMotor, BP.get_motor_encoder(leftMotor))
+		BP.set_motor_limits(rightMotor, 70, 360)
+		BP.set_motor_limits(leftMotor, 70, 360)
+
+		current_time = time.time()
+		end_time = current_time + time_delta
+		BP.set_motor_dps(rightMotor, angular_velocity)
+		BP.set_motor_dps(leftMotor, -angular_velocity)
+		while (time.time() <= end_time):
+			continue
+		BP.set_motor_dps(rightMotor, 0)
+		BP.set_motor_dps(leftMotor, 0)
+
+	except IOError as error:
+		print(error)
 
 try:
-	moveStraight(30)
+	#moveStraight(30)
+	rotateAntiClockwise(180)
 	#BP.reset_all()
 except KeyboardInterrupt:
 	BP.reset_all()
