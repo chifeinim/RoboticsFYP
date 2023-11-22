@@ -75,11 +75,11 @@ def rotateAntiClockwise(angle):
 try:
 	moveStraight(40)
 	rotateAntiClockwise(90)
-	moveStraight(50)
+	moveStraight(40)
 	rotateAntiClockwise(90)
-	moveStraight(50)
+	moveStraight(40)
 	rotateAntiClockwise(90)
-	moveStraight(50)
+	moveStraight(40)
 	rotateAntiClockwise(90)
 	#BP.reset_all()
 except KeyboardInterrupt:
