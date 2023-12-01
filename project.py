@@ -9,8 +9,8 @@ import random
 
 BP = brickpi3.BrickPi3()
 
-rightMotor = BP.PORT_C
-leftMotor = BP.PORT_B
+rightMotor = BP.PORT_D
+leftMotor = BP.PORT_A
 
 # constants
 pi = math.pi
