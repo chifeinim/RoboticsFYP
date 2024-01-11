@@ -76,6 +76,13 @@ def rotateAntiClockwise(angle):
 	except IOError as error:
 		print(error)
 
+# pixels: numpy (3x1) array [pix_x, pix_y, 1]
+# return: numpy (3x1) array [coord_x, coord_y, 1]
+def predictPosition(pixels):
+	estimate = np.dot(camera_homography, pixels)
+	estimate = estimate / estimate[2]
+	return estimate
+
 # row: numpy array [(pix_x, pix_y, coord_x, coord_y)]
 # return: numpy array of errors in cm
 def homographyError(row):
@@ -87,12 +94,13 @@ def homographyError(row):
 		coord_x = row[i][2]
 		coord_y = row[i][3]
 		pixels = np.array([pix_x, pix_y, 1])
-		estimate = np.dot(camera_homography, pixels)
-		estimate = estimate / estimate[2]
+
+		estimate = predictPosition(pixels)
 		error_x = abs(coord_x - estimate[0])
 		error_y = abs(coord_y - estimate[1])
 		error = math.sqrt(math.pow(error_x, 2) + math.pow(error_y, 2))
 		outputErrors[i] = error
+
 	return outputErrors
 
 depth_60 = np.array([
