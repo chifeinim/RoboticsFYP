@@ -77,6 +77,7 @@ def rotateAntiClockwise(angle):
 		print(error)
 
 # row: numpy array [(pix_x, pix_y, coord_x, coord_y)]
+# return: numpy array of errors in cm
 def homographyError(row):
 	nPoints = row.shape[0]
 	outputErrors = np.empty((nPoints, 1))
