@@ -114,6 +114,7 @@ def drawContourMap(row):
 	mpl.rcParams["legend.fontsize"] = "large"
 	mpl.rcParams["figure.titlesize"] = "medium"
 	fig, ax = plt.subplots()
+	ax.xaxis.tick_top()
 
 	errorArray = homographyError(row)
 	x = errorArray[:,0]
@@ -127,6 +128,8 @@ def drawContourMap(row):
 	ax.set(xlim=(0, 4608), ylim=(0, 2592))
 
 	plt.subplots_adjust(hspace=0.5)
+	plt.gca().invert_yaxis()
+	plt.savefig("Photos/contour_map.png")
 	plt.show()
 
 depth_60 = np.array([
@@ -206,10 +209,11 @@ depth_10 = np.array([
 	(3943, 2336, 15, 10),
 	(4377, 2271, 20, 10)])
 
+all_depths = np.vstack((depth_10, depth_15, depth_20, depth_30, depth_40, depth_50, depth_60))
 
 try:
 	#print(homographyError(depth_60))
-	drawContourMap(depth_60)
+	drawContourMap(all_depths)
 	#moveStraight(40)
 	#rotateAntiClockwise(90)
 	#moveStraight(40)
