@@ -1,6 +1,9 @@
 from __future__ import print_function
 from __future__ import division
 
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import matplotlib.tri as tri
 import time
 import brickpi3
 import math
@@ -84,10 +87,11 @@ def predictPosition(pixels):
 	return estimate
 
 # row: numpy array [(pix_x, pix_y, coord_x, coord_y)]
-# return: numpy array of errors in cm
+# return: numpy array of errors in cm, at pixel coords
+# 	: [[pix_x, pix_y, error]]
 def homographyError(row):
 	nPoints = row.shape[0]
-	outputErrors = np.empty((nPoints, 1))
+	outputErrors = np.empty((nPoints, 3))
 	for i in range(nPoints):
 		pix_x = row[i][0]
 		pix_y = row[i][1]
@@ -99,9 +103,31 @@ def homographyError(row):
 		error_x = abs(coord_x - estimate[0])
 		error_y = abs(coord_y - estimate[1])
 		error = math.sqrt(math.pow(error_x, 2) + math.pow(error_y, 2))
-		outputErrors[i] = error
+		outputErrors[i][0] = pix_x
+		outputErrors[i][1] = pix_y
+		outputErrors[i][2] = error
 
 	return outputErrors
+
+def drawContourMap(row):
+	mpl.rcParams["font.size"] = 14
+	mpl.rcParams["legend.fontsize"] = "large"
+	mpl.rcParams["figure.titlesize"] = "medium"
+	fig, ax = plt.subplots()
+
+	errorArray = homographyError(row)
+	x = errorArray[:,0]
+	y = errorArray[:,1]
+	error = errorArray[:,2]
+
+	ax.tricontour(x, y, error, levels=14, linewidths=0.5, colors='k')
+	cntr = ax.tricontourf(x, y, error, levels=14, cmap="RdBu_r")
+	fig.colorbar(cntr, ax=ax)
+	ax.plot(x, y, 'ko', ms=3)
+	ax.set(xlim=(0, 4608), ylim=(0, 2592))
+
+	plt.subplots_adjust(hspace=0.5)
+	plt.show()
 
 depth_60 = np.array([
 	(16, 218, -60, 60),
@@ -182,11 +208,8 @@ depth_10 = np.array([
 
 
 try:
-	#a = np.array([16, 218, 1])
-	#b = np.dot(camera_homography, a)
-	#b = b / b[2]
-	#print(b)
-	print(homographyError(depth_30))
+	#print(homographyError(depth_60))
+	drawContourMap(depth_60)
 	#moveStraight(40)
 	#rotateAntiClockwise(90)
 	#moveStraight(40)
