@@ -121,16 +121,26 @@ def drawContourMap(row):
 	y = errorArray[:,1]
 	error = errorArray[:,2]
 
-	ax.tricontour(x, y, error, levels=14, linewidths=0.5, colors='k')
-	cntr = ax.tricontourf(x, y, error, levels=14, cmap="RdBu_r")
+	ax.tricontour(x, y, error, levels=54, linewidths=0.1, colors="k")
+	cntr = ax.tricontourf(x, y, error, levels=54, cmap="RdBu_r")
 	fig.colorbar(cntr, ax=ax)
-	ax.plot(x, y, 'ko', ms=3)
+	ax.plot(x, y, "ko", ms=1.5)
 	ax.set(xlim=(0, 4608), ylim=(0, 2592))
+	ax.set_aspect("equal", adjustable="box")
+	ax.set_xlabel("x / pixels")
+	ax.set_ylabel("y / pixels")
+	ax.xaxis.set_label_position("top") 
 
 	plt.subplots_adjust(hspace=0.5)
 	plt.gca().invert_yaxis()
 	plt.savefig("Photos/contour_map.png")
 	plt.show()
+
+depth_far = np.array([
+	(190, 48, -60, 70),
+	(2621, 30, 10, 62),
+	(4240, 11, 60, 70),
+	(4460, 83, 70, 70)])
 
 depth_60 = np.array([
 	(16, 218, -60, 60),
@@ -169,16 +179,19 @@ depth_40 = np.array([
 	(2758, 509, 10, 40),
 	(3306, 509, 20, 40),
 	(3863, 504, 30, 40),
-	(4335, 529, 40, 40)])
+	(4335, 529, 40, 40),
+	(4586, 571, 48, 40)])
 
 depth_30 = np.array([
+	(47, 917, -33, 30),
 	(186, 903, -30, 30),
 	(824, 882, -20, 30),
 	(1528, 883, -10, 30),
 	(2211, 864, 0, 30),
 	(2890, 860, 10, 30),
 	(3546, 857, 20, 30),
-	(4200, 865, 30, 30)])
+	(4200, 865, 30, 30),
+	(4581, 890, 38, 30)])
 
 depth_20 = np.array([
 	(90, 1465, -25, 20),
@@ -190,6 +203,7 @@ depth_20 = np.array([
 	(4588, 1405, 30, 20)])
 
 depth_15 = np.array([
+	(28, 1856, -23, 15),
 	(230, 1875, -20, 15),
 	(689, 1879, -15, 15),
 	(1199, 1856, -10, 15),
@@ -207,9 +221,33 @@ depth_10 = np.array([
 	(2808, 2373, 5, 10),
 	(3388, 2357, 10, 10),
 	(3943, 2336, 15, 10),
-	(4377, 2271, 20, 10)])
+	(4377, 2271, 20, 10),
+	(4580, 2211, 23, 10)])
 
-all_depths = np.vstack((depth_10, depth_15, depth_20, depth_30, depth_40, depth_50, depth_60))
+depth_close = np.array([
+	(35, 2538, -20, 8),
+	(160, 2586, -18, 8),
+	(427, 2541, -15, 9),
+	(973, 2579, -10, 9),
+	(1591, 2554, -5, 9),
+	(2213, 2540, 0, 9),
+	(2831, 2513, 5, 9),
+	(3439, 2491, 10, 9),
+	(4046, 2577, 15, 8),
+	(4467, 2568, 20, 7),
+	(4588, 2510, 22, 7),
+	(4594, 2554, 22, 6.5)])
+
+all_depths = np.vstack((
+	depth_close,
+	depth_10,
+	depth_15,
+	depth_20,
+	depth_30,
+	depth_40,
+	depth_50,
+	depth_60,
+	depth_far))
 
 try:
 	#print(homographyError(depth_60))
