@@ -123,13 +123,14 @@ def drawContourMap(row):
 
 	ax.tricontour(x, y, error, levels=54, linewidths=0.1, colors="k")
 	cntr = ax.tricontourf(x, y, error, levels=54, cmap="RdBu_r")
-	fig.colorbar(cntr, ax=ax)
+	cbar = fig.colorbar(cntr, ax=ax)
+	cbar.set_label("error / cm", rotation = 0, labelpad = 40)
 	ax.plot(x, y, "ko", ms=1.5)
 	ax.set(xlim=(0, 4608), ylim=(0, 2592))
 	ax.set_aspect("equal", adjustable="box")
-	ax.set_xlabel("x / pixels")
-	ax.set_ylabel("y / pixels")
-	ax.xaxis.set_label_position("top") 
+	ax.set_xlabel("x / pixels", labelpad = 15)
+	ax.set_ylabel("y / pixels", rotation = 0, labelpad = 15)
+	ax.xaxis.set_label_position("top")
 
 	plt.subplots_adjust(hspace=0.5)
 	plt.gca().invert_yaxis()
