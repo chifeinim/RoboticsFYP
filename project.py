@@ -79,6 +79,24 @@ def rotateAntiClockwise(angle):
 	except IOError as error:
 		print(error)
 
+# x: robot's x position
+# y: robot's y position
+# theta: robot's angle position
+# target_x: desired x-coordinate
+# target_y: desired y-coordinate
+def moveToWaypoint(x, y, theta, target_x, target_y):
+	distance = math.sqrt((x - target_x) ** 2 + (y - target_y) ** 2)
+	alpha = math.atan2(target_y - y, target_x - x) * 180 / pi
+
+	beta = alpha - theta
+	if beta > 180:
+		beta -= 360
+	elif beta < -180:
+		beta += 360
+
+	rotateAntiClockwise(beta)
+	moveStraight(distance)
+
 # pixels: numpy (3x1) array [pix_x, pix_y, 1]
 # return: numpy (3x1) array [coord_x, coord_y, 1]
 def predictPosition(pixels):
