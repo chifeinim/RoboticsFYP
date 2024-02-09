@@ -26,20 +26,27 @@ camera_homography = np.array([
 	(-0.00037511, -0.014528, 65.596),
 	(0.000019383, 0.00080886, 1)], dtype = float)
 
+# x1: float (cm)
+# y1: float (cm)
+# x2: float (cm)
+# y1: float (cm)
+def distance(x1, y1, x2, y2):
+	return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+
 # length: float (cm)
 def moveStraight(length):
 	try:
 		length = length * floor_modifier_move
 		backwards = length < 0
 		degrees = 180 * length / (pi * wheel_radius)
-		time_delta = length / 15
+		delta_time = length / 15
 
 		BP.offset_motor_encoder(rightMotor, BP.get_motor_encoder(rightMotor))
 		BP.offset_motor_encoder(leftMotor, BP.get_motor_encoder(leftMotor))
 		BP.set_motor_limits(rightMotor, 70, 360)
 		BP.set_motor_limits(leftMotor, 70, 360)
 		current_time = time.time()
-		end_time = current_time + time_delta
+		end_time = current_time + delta_time
 		BP.set_motor_position(rightMotor, degrees)
 		BP.set_motor_position(leftMotor, degrees)
 
@@ -58,8 +65,8 @@ def moveStraight(length):
 def rotateAntiClockwise(angle):
 	try:
 		angle = angle * floor_modifier_rotate
-		time_delta = angle / 90
-		angular_velocity = (1 / time_delta) * angle * wheel_distance / (2 * wheel_radius)
+		delta_time = angle / 90
+		angular_velocity = (1 / delta_time) * angle * wheel_distance / (2 * wheel_radius)
 
 		BP.offset_motor_encoder(rightMotor, BP.get_motor_encoder(rightMotor))
 		BP.offset_motor_encoder(leftMotor, BP.get_motor_encoder(leftMotor))
@@ -67,7 +74,7 @@ def rotateAntiClockwise(angle):
 		BP.set_motor_limits(leftMotor, 70, 360)
 
 		current_time = time.time()
-		end_time = current_time + time_delta
+		end_time = current_time + delta_time
 		BP.set_motor_dps(rightMotor, angular_velocity)
 		BP.set_motor_dps(leftMotor, -angular_velocity)
 		while (time.time() <= end_time):
@@ -85,7 +92,6 @@ def rotateAntiClockwise(angle):
 # x_target: float (cm)
 # y_target: float (cm)
 def moveStraightToWaypoint(x, y, theta, x_target, y_target):
-	distance = math.sqrt((x - x_target) ** 2 + (y - y_target) ** 2)
 	alpha = math.atan2(y_target - y, x_target - x) * 180 / pi
 
 	beta = alpha - theta
@@ -95,7 +101,7 @@ def moveStraightToWaypoint(x, y, theta, x_target, y_target):
 		beta += 360
 
 	rotateAntiClockwise(beta)
-	moveStraight(distance)
+	moveStraight(distance(x, y, x_target, y_target))
 
 # x: float(cm)
 # y: float(cm)
@@ -110,16 +116,59 @@ def costBenefit(x, y, x_new, y_new, x_target, y_target):
 	weight_benefit = 1.0
 	weight_cost = 1.0
 	safe_distance = 5 # cm
-	robot_radius = 8 # cm
-	obstacle_radius = 3.5 # cm
+	radius_robot = 8 # cm
+	radius_obstacle = 3.5 # cm
 
-	benefit = weight_benefit * (math.sqrt((x_target - x) ** 2 + (y_target - y) ** 2) - math.sqrt((x_target - x_new) ** 2 + (y_target - y_new) ** 2))
-	cost = weight_cost * (safe_distance - math.sqrt((x_obstacle - x_new) ** 2 + (y_obstacle - y_new) ** 2) - robot_radius - obstacle_radius)
+	benefit = weight_benefit * (distance(x, y, x_target, y_target) - distance(x_new, y_new, x_target, y_target))
+	cost = weight_cost * (safe_distance - distance(x_new, y_new, x_obstacle, y_obstacle) - radius_robot - radius_obstacle)
 	return benefit - cost
+
+# x: float (cm)
+# y: float (cm)
+# obstacle_list: list [(x_obstacle, y_obstacle)]
+def closestObstacle(x, y, obstacle_list):
+	shortest_distance = 10000.0
+	x_closest = 10000.0
+	y_closest = 10000.0
+
+	for obstacle in obstacle_list:
+		(x_obstacle, y_obstacle) = obstacle
+		obstacle_distance = distance(x, y, x_obstacle, y_obstacle)
+		if obstacle_distance < shortest_distance:
+			shortest_distance = obstacle_distance
+			x_closest = x_obstacle
+			y_closest = y_obstacle
+
+# velocity_l: float (cms^-2)
+# velocity_r: float (cms^-2)
+# x: float (cm)
+# y: float (cm)
+# theta: float (degrees)
+# delta_time: float (s)
+# return: (float(cm), float(cm), float(degrees))
+def predictMovement(velocity_l, velocity_r, x, y, theta, delta_time):
+	if velocity_l == velocity_r:
+		x_new = x + velocity_l * delta_time * math.cos(theta * pi / 180)
+		y_new = y + velocity_l * delta_time * math.sin(theta * pi / 180)
+		theta_new = theta
+
+	elif velocity_l == -velocity_r:
+		x_new = x
+		y_new = y
+		theta_new = theta + ((velocity_r - velocity_l) * delta_time / wheel_distance)
+
+	else:
+		arc_radius = wheel_distance / 2 * (velocity_l + velocity_r) / (velocity_r - velocity_l)
+		delta_theta = (velocity_r - velocity_l) * delta_time / wheel_distance
+		x_new = x + arc_radius * (math.sin((delta_theta + theta) * pi / 180) - math.sin(theta * pi / 180))
+		y_new = y + arc_radius * (math.cos((delta_theta + theta) * pi / 180) - math.cos(theta * pi / 180))
+		theta_new = theta + delta_theta
+
+	return (x_new, y_new, theta_new)
 
 # pixels: numpy (3x1) array [pix_x, pix_y, 1]
 # return: numpy (3x1) array [coord_x, coord_y, 1]
-def predictPosition(pixels):
+def predictCoordinates(pixels):
 	estimate = np.dot(camera_homography, pixels)
 	estimate = estimate / estimate[2]
 	return estimate
@@ -137,7 +186,7 @@ def homographyError(row):
 		coord_y = row[i][3]
 		pixels = np.array([pix_x, pix_y, 1])
 
-		estimate = predictPosition(pixels)
+		estimate = predictCoordinates(pixels)
 		error_x = abs(coord_x - estimate[0])
 		error_y = abs(coord_y - estimate[1])
 		error = math.sqrt(math.pow(error_x, 2) + math.pow(error_y, 2))
