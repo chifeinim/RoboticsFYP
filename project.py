@@ -79,14 +79,14 @@ def rotateAntiClockwise(angle):
 	except IOError as error:
 		print(error)
 
-# x: robot's x position
-# y: robot's y position
-# theta: robot's angle position
-# target_x: desired x-coordinate
-# target_y: desired y-coordinate
-def moveToWaypoint(x, y, theta, target_x, target_y):
-	distance = math.sqrt((x - target_x) ** 2 + (y - target_y) ** 2)
-	alpha = math.atan2(target_y - y, target_x - x) * 180 / pi
+# x: float (cm)
+# y: float (cm)
+# theta: float (degrees)
+# x_target: float (cm)
+# y_target: float (cm)
+def moveStraightToWaypoint(x, y, theta, x_target, y_target):
+	distance = math.sqrt((x - x_target) ** 2 + (y - y_target) ** 2)
+	alpha = math.atan2(y_target - y, x_target - x) * 180 / pi
 
 	beta = alpha - theta
 	if beta > 180:
@@ -96,6 +96,26 @@ def moveToWaypoint(x, y, theta, target_x, target_y):
 
 	rotateAntiClockwise(beta)
 	moveStraight(distance)
+
+# x: float(cm)
+# y: float(cm)
+# x_new: float(cm)
+# y_new: float(cm)
+# x_obstacle: float(cm)
+# y_obstacle: float(cm)
+# x_target: float (cm)
+# y_target: float (cm)
+# return: float (cm)
+def costBenefit(x, y, x_new, y_new, x_target, y_target):
+	weight_benefit = 1.0
+	weight_cost = 1.0
+	safe_distance = 5 # cm
+	robot_radius = 8 # cm
+	obstacle_radius = 3.5 # cm
+
+	benefit = weight_benefit * (math.sqrt((x_target - x) ** 2 + (y_target - y) ** 2) - math.sqrt((x_target - x_new) ** 2 + (y_target - y_new) ** 2))
+	cost = weight_cost * (safe_distance - math.sqrt((x_obstacle - x_new) ** 2 + (y_obstacle - y_new) ** 2) - robot_radius - obstacle_radius)
+	return benefit - cost
 
 # pixels: numpy (3x1) array [pix_x, pix_y, 1]
 # return: numpy (3x1) array [coord_x, coord_y, 1]
@@ -269,6 +289,7 @@ def drawContourMap():
 	plt.show()
 
 try:
+	print("Everything compiles!")
 	#print(homographyError(depth_60))
 	#drawContourMap()
 	#moveStraight(40)
