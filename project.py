@@ -19,6 +19,8 @@ leftMotor = BP.PORT_A
 pi = math.pi
 wheel_radius = 2.8 # cm
 wheel_distance = 14.25 # cm
+max_acceleration = wheel_radius * 2 * pi # cms^(-2)
+max_velocty = max_acceleration # cms^(-1)
 floor_modifier_move = 1.02 # 1.02 = hard floor, ? = carpet
 floor_modifier_rotate = 1.08 # 1.08 = hard floor, ? = carpet
 camera_homography = np.array([
@@ -113,11 +115,11 @@ def moveStraightToWaypoint(x, y, theta, x_target, y_target):
 # y_target: float (cm)
 # return: float (cm)
 def costBenefit(x, y, x_new, y_new, x_target, y_target):
-	weight_benefit = 1.0
-	weight_cost = 1.0
+	weight_benefit = 12
+	weight_cost = 16
 	safe_distance = 5 # cm
-	radius_robot = 8 # cm
-	radius_obstacle = 3.5 # cm
+	radius_robot = wheel_distance / 2 # cm
+	radius_obstacle = 1 # cm
 
 	benefit = weight_benefit * (distance(x, y, x_target, y_target) - distance(x_new, y_new, x_target, y_target))
 	cost = weight_cost * (safe_distance - distance(x_new, y_new, x_obstacle, y_obstacle) - radius_robot - radius_obstacle)
@@ -165,6 +167,19 @@ def predictMovement(velocity_l, velocity_r, x, y, theta, delta_time):
 		theta_new = theta + delta_theta
 
 	return (x_new, y_new, theta_new)
+
+def dynamicWindowApproach():
+	try:
+		x_start = 0.0
+		y_start = 0.0
+		theta_start = 0.0
+		velocity_l = 0.0
+		velocity_r = 0.0
+		delta_time = 0.1
+		while True:
+			best_cost_benefit = -10000.0
+	except IOError as error:
+		print(error)
 
 # pixels: numpy (3x1) array [pix_x, pix_y, 1]
 # return: numpy (3x1) array [coord_x, coord_y, 1]
@@ -338,7 +353,7 @@ def drawContourMap():
 	plt.show()
 
 try:
-	print("Everything compiles!")
+	dynamicWindowApproach()
 	#print(homographyError(depth_60))
 	#drawContourMap()
 	#moveStraight(40)
