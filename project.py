@@ -168,6 +168,11 @@ def predictMovement(velocity_l, velocity_r, x, y, theta, delta_time):
 
 	return (x_new, y_new, theta_new)
 
+# return: [(x_obstacle, y_obstacle)]
+def getObstacles():
+	# placeholder
+	return [(0, 20), (-20, 40), (20, 40)]
+
 def dynamicWindowApproach():
 	try:
 		x_start = 0.0
