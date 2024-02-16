@@ -161,9 +161,9 @@ def getClosestObstacle(x, y, obstacle_list):
 # velocity_r: float (cms^-2)
 # x: float (cm)
 # y: float (cm)
-# theta: float (degrees)
+# theta: float (radians)
 # delta_time: float (s)
-# return: (float(cm), float(cm), float(degrees))
+# return: (float(cm), float(cm), float(radians))
 def predictMovement(velocity_l, velocity_r, x, y, theta, delta_time):
 	if velocity_l == velocity_r:
 		x_new = x + velocity_l * delta_time * math.cos(theta)
