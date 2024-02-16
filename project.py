@@ -9,6 +9,7 @@ import brickpi3
 import math
 import numpy as np
 import random
+import pdb
 
 BP = brickpi3.BrickPi3()
 
@@ -20,7 +21,7 @@ pi = math.pi
 wheel_radius = 2.8 # cm
 wheel_distance = 14.25 # cm
 max_acceleration = wheel_radius * 2 * pi # cms^(-2)
-max_velocty = max_acceleration # cms^(-1)
+max_velocity = max_acceleration # cms^(-1)
 floor_modifier_move = 1.02 # 1.02 = hard floor, ? = carpet
 floor_modifier_rotate = 1.08 # 1.08 = hard floor, ? = carpet
 camera_homography = np.array([
@@ -114,10 +115,10 @@ def moveStraightToWaypoint(x, y, theta, x_target, y_target):
 # x_target: float (cm)
 # y_target: float (cm)
 # return: float (cm)
-def costBenefit(x, y, x_new, y_new, x_target, y_target):
+def costBenefit(x, y, x_new, y_new, x_obstacle, y_obstacle, x_target, y_target):
 	weight_benefit = 12
-	weight_cost = 16
-	safe_distance = 5 # cm
+	weight_cost = 32
+	safe_distance = 20 # cm
 	radius_robot = wheel_distance / 2 # cm
 	radius_obstacle = 1 # cm
 
@@ -128,7 +129,8 @@ def costBenefit(x, y, x_new, y_new, x_target, y_target):
 # x: float (cm)
 # y: float (cm)
 # obstacle_list: list [(x_obstacle, y_obstacle)]
-def closestObstacle(x, y, obstacle_list):
+# return: (x_closest (cm), y_closest (cm))
+def getClosestObstacle(x, y, obstacle_list):
 	shortest_distance = 10000.0
 	x_closest = 10000.0
 	y_closest = 10000.0
@@ -140,6 +142,8 @@ def closestObstacle(x, y, obstacle_list):
 			shortest_distance = obstacle_distance
 			x_closest = x_obstacle
 			y_closest = y_obstacle
+
+	return (x_closest, y_closest)
 
 # velocity_l: float (cms^-2)
 # velocity_r: float (cms^-2)
@@ -170,19 +174,45 @@ def predictMovement(velocity_l, velocity_r, x, y, theta, delta_time):
 
 # return: [(x_obstacle, y_obstacle)]
 def getObstacles():
-	# placeholder
-	return [(0, 20), (-20, 40), (20, 40)]
+	# placeholder until we implement camera
+	return [(20, 0), (40, -20), (40, 20)]
 
 def dynamicWindowApproach():
 	try:
 		x_start = 0.0
 		y_start = 0.0
 		theta_start = 0.0
-		velocity_l = 0.0
-		velocity_r = 0.0
+		velocity_l_start = 0.0
+		velocity_r_start = 0.0
 		delta_time = 0.1
+
+#		pdb.set_trace()
+
+		x_target, y_target = (60, 0) # for now we have static target, later we implement camera to identify target
 		while True:
 			best_cost_benefit = -10000.0
+			obstacles = getObstacles()
+
+			possible_velocities_l = [velocity_l_start - max_acceleration * delta_time, velocity_l_start, velocity_l_start + max_acceleration * delta_time]
+			possible_velocities_r = [velocity_r_start - max_acceleration * delta_time, velocity_r_start, velocity_r_start + max_acceleration * delta_time]
+
+			for velocity_l in possible_velocities_l:
+				for velocity_r in possible_velocities_r:
+					if velocity_l <= max_velocity and velocity_r <= max_velocity and velocity_l >= -max_velocity and velocity_r >= -max_velocity:
+						(x_new, y_new, theta_new) = predictMovement(velocity_l, velocity_r, x_start, y_start, theta_start, delta_time)
+						(x_obstacle, y_obstacle) = getClosestObstacle(x_new, y_new, obstacles)
+						cost_benefit = costBenefit(x_start, y_start, x_new, y_new, x_obstacle, y_obstacle, x_target, y_target)
+						if cost_benefit > best_cost_benefit:
+							velocity_l_chosen = velocity_l
+							velocity_r_chosen = velocity_r
+							best_cost_benefit = cost_benefit
+
+			BP.set_motor_dps(leftMotor, (velocity_l_chosen / wheel_radius) * (180 / pi))
+			BP.set_motor_dps(rightMotor, (velocity_r_chosen / wheel_radius) * (180 / pi))
+			velocity_l_start = velocity_l_chosen
+			velocity_r_start = velocity_r_chosen
+			x_start, y_start, theta_start = predictMovement(velocity_l_start, velocity_r_start, x_start, y_start, theta_start, delta_time)
+			time.sleep(delta_time)
 	except IOError as error:
 		print(error)
 
@@ -358,17 +388,13 @@ def drawContourMap():
 	plt.show()
 
 try:
+	#print("All good!")
 	dynamicWindowApproach()
+	#while True:
+	#	BP.set_motor_dps(rightMotor, 180)
+	#	BP.set_motor_dps(leftMotor, 180)
 	#print(homographyError(depth_60))
 	#drawContourMap()
-	#moveStraight(40)
-	#rotateAntiClockwise(90)
-	#moveStraight(40)
-	#rotateAntiClockwise(90)
-	#moveStraight(40)
-	#rotateAntiClockwise(90)
-	#moveStraight(40)
-	#rotateAntiClockwise(90)
 	#BP.reset_all()
 except KeyboardInterrupt:
 	BP.reset_all()
