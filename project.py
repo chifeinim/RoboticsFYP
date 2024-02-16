@@ -117,14 +117,26 @@ def moveStraightToWaypoint(x, y, theta, x_target, y_target):
 # return: float (cm)
 def costBenefit(x, y, x_new, y_new, x_obstacle, y_obstacle, x_target, y_target):
 	weight_benefit = 12
-	weight_cost = 32
-	safe_distance = 20 # cm
+	weight_cost = 16
+	safe_distance = 10 # cm
 	radius_robot = wheel_distance / 2 # cm
 	radius_obstacle = 1 # cm
 
 	benefit = weight_benefit * (distance(x, y, x_target, y_target) - distance(x_new, y_new, x_target, y_target))
-	cost = weight_cost * (safe_distance - distance(x_new, y_new, x_obstacle, y_obstacle) - radius_robot - radius_obstacle)
+
+	distance_to_obstacle = distance(x_new, y_new, x_obstacle, y_obstacle) - radius_robot - radius_obstacle
+	if distance_to_obstacle < safe_distance:
+		cost = weight_cost * (safe_distance - distance_to_obstacle)
+	else:
+		cost = 0
+
 	return benefit - cost
+
+
+# return: [(x_obstacle, y_obstacle)]
+def getObstacles():
+	# placeholder until we implement camera
+	return [(20, 0), (40, -40), (40, 40), (60, 0), (80, -40), (80,40)]
 
 # x: float (cm)
 # y: float (cm)
@@ -154,8 +166,8 @@ def getClosestObstacle(x, y, obstacle_list):
 # return: (float(cm), float(cm), float(degrees))
 def predictMovement(velocity_l, velocity_r, x, y, theta, delta_time):
 	if velocity_l == velocity_r:
-		x_new = x + velocity_l * delta_time * math.cos(theta * pi / 180)
-		y_new = y + velocity_l * delta_time * math.sin(theta * pi / 180)
+		x_new = x + velocity_l * delta_time * math.cos(theta)
+		y_new = y + velocity_l * delta_time * math.sin(theta)
 		theta_new = theta
 
 	elif velocity_l == -velocity_r:
@@ -166,16 +178,11 @@ def predictMovement(velocity_l, velocity_r, x, y, theta, delta_time):
 	else:
 		arc_radius = wheel_distance / 2 * (velocity_l + velocity_r) / (velocity_r - velocity_l)
 		delta_theta = (velocity_r - velocity_l) * delta_time / wheel_distance
-		x_new = x + arc_radius * (math.sin((delta_theta + theta) * pi / 180) - math.sin(theta * pi / 180))
-		y_new = y + arc_radius * (math.cos((delta_theta + theta) * pi / 180) - math.cos(theta * pi / 180))
+		x_new = x + arc_radius * (math.sin(delta_theta + theta) - math.sin(theta))
+		y_new = y - arc_radius * (math.cos(delta_theta + theta) - math.cos(theta))
 		theta_new = theta + delta_theta
 
 	return (x_new, y_new, theta_new)
-
-# return: [(x_obstacle, y_obstacle)]
-def getObstacles():
-	# placeholder until we implement camera
-	return [(20, 0), (40, -20), (40, 20)]
 
 def dynamicWindowApproach():
 	try:
@@ -188,7 +195,7 @@ def dynamicWindowApproach():
 
 #		pdb.set_trace()
 
-		x_target, y_target = (60, 0) # for now we have static target, later we implement camera to identify target
+		x_target, y_target = (100, 0) # for now we have static target, later we implement camera to identify target
 		while True:
 			best_cost_benefit = -10000.0
 			obstacles = getObstacles()
@@ -199,7 +206,7 @@ def dynamicWindowApproach():
 			for velocity_l in possible_velocities_l:
 				for velocity_r in possible_velocities_r:
 					if velocity_l <= max_velocity and velocity_r <= max_velocity and velocity_l >= -max_velocity and velocity_r >= -max_velocity:
-						(x_new, y_new, theta_new) = predictMovement(velocity_l, velocity_r, x_start, y_start, theta_start, delta_time)
+						(x_new, y_new, theta_new) = predictMovement(velocity_l, velocity_r, x_start, y_start, theta_start, 10 * delta_time)
 						(x_obstacle, y_obstacle) = getClosestObstacle(x_new, y_new, obstacles)
 						cost_benefit = costBenefit(x_start, y_start, x_new, y_new, x_obstacle, y_obstacle, x_target, y_target)
 						if cost_benefit > best_cost_benefit:
