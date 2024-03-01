@@ -234,8 +234,8 @@ def predictCoordinates(pixels):
 
 def enableCamera():
 	picam2 = Picamera2()
-	#picam2.start_preview(Preview.QT)
-	preview_config = picam2.create_preview_configuration(main={"size": (640, 480)})
+	preview_config = picam2.create_preview_configuration(main={"size": (1920, 1080)})
+#	preview_config = picam2.create_preview_configuration()
 	picam2.configure(preview_config)
 
 	picam2.start()
@@ -249,7 +249,6 @@ def enableCamera():
 
 		# Applying 7x7 Gaussian Blur
 		#img = cv2.GaussianBlur(img, (27, 27), 0)
-
 
 		img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
@@ -283,7 +282,7 @@ def enableCamera():
 				h = stats[i, cv2.CC_STAT_HEIGHT]
 				area = stats[i, cv2.CC_STAT_AREA]
 				(cX, cY) = centroids[i]
-				if (area > 5000):
+				if (area > 100):
 					print("Component", i, "area", area, "Centroid", cX, cY)
 					img = cv2.circle(img, (int(cX), int(cY)), 5, white, 3)
 
@@ -296,9 +295,34 @@ def enableCamera():
 
 		if cv2.waitKey(1) & 0xFF == ord('q'):
 			break
-		# time.sleep(0.1)
-		# picam2.capture_file("demo.jpg")
-		# print("drawImg:" + "/home/pi/prac-files/demo.jpg")
+
+	picam2.stop()
+	cv2.destroyAllWindows()
+
+def colourTest():
+	picam2 = Picamera2()
+	preview_config = picam2.create_preview_configuration(main={"size": (640, 480)})
+	picam2.configure(preview_config)
+
+	picam2.start()
+
+	starttime = time.time()
+
+	white = (255,255,255)
+
+	while True:
+		frame = picam2.capture_array()
+		frameNotBlue = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+		frameHSV = cv2.cvtColor(frameNotBlue, cv2.COLOR_BGR2HSV)
+		circled = cv2.circle(frame, (320, 240), 7, white, 1)
+
+		print(frameHSV[320, 240])
+
+		cv2.imshow("Camera", frameNotBlue)
+
+		if cv2.waitKey(1) & 0xFF == ord('q'):
+			break
+
 	picam2.stop()
 	cv2.destroyAllWindows()
 
@@ -469,6 +493,7 @@ def drawContourMap():
 try:
 	#print("All good!")
 	enableCamera()
+#	colourTest()
 	#dynamicWindowApproach()
 	#while True:
 	#	BP.set_motor_dps(rightMotor, 180)
