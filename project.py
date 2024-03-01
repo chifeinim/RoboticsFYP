@@ -23,7 +23,7 @@ pi = math.pi
 wheel_radius = 2.8 # cm
 wheel_distance = 14.25 # cm
 max_acceleration = wheel_radius * 1 * pi # cms^(-2)
-max_velocity = 2 * max_acceleration # cms^(-1)
+max_velocity = 1 * max_acceleration # cms^(-1)
 floor_modifier_move = 1.02 # 1.02 = hard floor, ? = carpet
 floor_modifier_rotate = 1.08 # 1.08 = hard floor, ? = carpet
 camera_homography = np.array([
@@ -186,10 +186,7 @@ def predictMovement(velocity_l, velocity_r, x, y, theta, delta_time):
 
 	return (x_new, y_new, theta_new)
 
-# position_estimate: np.array([relative_x_obstacle, relative_y_obstacle, 1])
-def getTruePosition(x, y, theta, position_estimate):
-	relative_x = position_estimate[0]
-	relative_y = position_estimate[1]
+def getTruePosition(x, y, theta, relative_x, relative_y):
 	true_x = x + relative_y * math.cos(theta) + relative_x * math.sin(theta)
 	true_y = y + relative_y * math.sin(theta) - relative_x * math.cos(theta)
 
@@ -201,7 +198,6 @@ def dynamicWindowApproach():
 		preview_config = picam2.create_preview_configuration(main={"size": (2304, 1296)})
 		picam2.configure(preview_config)
 		picam2.start()
-		starttime = time.time()
 		white = (255,255,255)
 
 		x_start = 0.0
@@ -211,6 +207,7 @@ def dynamicWindowApproach():
 		velocity_r_start = 0.0
 		delta_time = 0.5
 		obstacles = []
+		starttime = time.time()
 
 #		pdb.set_trace()
 
@@ -219,9 +216,9 @@ def dynamicWindowApproach():
 		while True:
 			#obstacles = []
 			best_cost_benefit = -10000.0
+			start_calc = time.time()
 
 			img = picam2.capture_array()
-			start_calc = time.time()
 			print("\n Captured image at time", start_calc - starttime)
 
 			img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
@@ -260,7 +257,12 @@ def dynamicWindowApproach():
 						#img = cv2.circle(img, (int(cX), int(cY)), 5, white, 3)
 						adjustedPixels = np.array([cX * 2, cY * 2, 1])
 						relativePosition = predictCoordinates(adjustedPixels)
-						obstacles.append(getTruePosition(x_start, y_start, theta_start, relativePosition))
+						relative_x = relativePosition[0]
+						relative_y = relativePosition[1]
+						(obstacle_x, obstacle_y) = getTruePosition(x_start, y_start, theta_start, relative_x, relative_y)
+						if any(distance(obst[0], obst[1], obstacle_x, obstacle_y) <= 5 for obst in obstacles):
+							continue
+						obstacles.append((obstacle_x, obstacle_y))
 
 			print(obstacles)
 			end_calc = time.time()
@@ -270,7 +272,7 @@ def dynamicWindowApproach():
 
 			for velocity_l in possible_velocities_l:
 				for velocity_r in possible_velocities_r:
-					if velocity_l <= max_velocity and velocity_r <= max_velocity and velocity_l >= 0 and velocity_r >= 0:
+					if velocity_l <= max_velocity and velocity_r <= max_velocity and velocity_l >= -max_velocity and velocity_r >= -max_velocity:
 						(x_new, y_new, theta_new) = predictMovement(velocity_l, velocity_r, x_start, y_start, theta_start, 3 * delta_time)
 						(x_obstacle, y_obstacle) = getClosestObstacle(x_new, y_new, obstacles)
 						cost_benefit = costBenefit(x_start, y_start, x_new, y_new, x_obstacle, y_obstacle, x_target, y_target)
@@ -289,8 +291,11 @@ def dynamicWindowApproach():
 			end_calc = time.time()
 			calc_time = end_calc - start_calc
 			print("Calculation time: ", calc_time)
-			if delta_time > calc_time:
-				time.sleep(delta_time - calc_time)
+			if (start_calc - starttime > 0.3):
+				if delta_time > calc_time:
+					time.sleep(delta_time - calc_time)
+			else:
+				time.sleep(delta_time)
 
 	except KeyboardInterrupt:
 		BP.reset_all()
@@ -307,8 +312,8 @@ def predictCoordinates(pixels):
 def enableCamera():
 	picam2 = Picamera2()
 #	preview_config = picam2.create_preview_configuration(main={"size": (1152, 648)})
-	preview_config = picam2.create_preview_configuration(main={"size": (2304, 1296)})
-#	preview_config = picam2.create_preview_configuration()
+#	preview_config = picam2.create_preview_configuration(main={"size": (2304, 1296)})
+	preview_config = picam2.create_preview_configuration()
 	picam2.configure(preview_config)
 
 	picam2.start()
@@ -364,7 +369,7 @@ def enableCamera():
 #		cv2.imwrite("Photos/demo.jpg", img)
 		#print("drawImg:" + "/home/pi/RoboticsFYP/Photos/demo.jpg")
 		print("Captured image", j, "at time", time.time() - starttime)
-#		cv2.imshow("Camera", img)
+		cv2.imshow("Camera", img)
 
 		if cv2.waitKey(1) & 0xFF == ord('q'):
 			break
@@ -563,12 +568,12 @@ def drawContourMap():
 	plt.savefig("Photos/contour_map.png")
 	plt.show()
 
-dynamicWindowApproach()
+#dynamicWindowApproach()
 #BP.reset_all()
-"""
+
 try:
 	#print("All good!")
-#	enableCamera()
+	enableCamera()
 #	colourTest()
 #	dynamicWindowApproach()
 	#while True:
@@ -579,5 +584,5 @@ try:
 	#BP.reset_all()
 except KeyboardInterrupt:
 	BP.reset_all()
-"""
+
 
