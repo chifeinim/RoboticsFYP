@@ -22,8 +22,8 @@ leftMotor = BP.PORT_A
 pi = math.pi
 wheel_radius = 2.8 # cm
 wheel_distance = 14.25 # cm
-max_acceleration = wheel_radius * 2 * pi # cms^(-2)
-max_velocity = max_acceleration # cms^(-1)
+max_acceleration = wheel_radius * 1 * pi # cms^(-2)
+max_velocity = 2 * max_acceleration # cms^(-1)
 floor_modifier_move = 1.02 # 1.02 = hard floor, ? = carpet
 floor_modifier_rotate = 1.08 # 1.08 = hard floor, ? = carpet
 camera_homography = np.array([
@@ -186,29 +186,92 @@ def predictMovement(velocity_l, velocity_r, x, y, theta, delta_time):
 
 	return (x_new, y_new, theta_new)
 
+# position_estimate: np.array([relative_x_obstacle, relative_y_obstacle, 1])
+def getTruePosition(x, y, theta, position_estimate):
+	relative_x = position_estimate[0]
+	relative_y = position_estimate[1]
+	true_x = x + relative_y * math.cos(theta) + relative_x * math.sin(theta)
+	true_y = y + relative_y * math.sin(theta) - relative_x * math.cos(theta)
+
+	return (true_x, true_y)
+
 def dynamicWindowApproach():
 	try:
+		picam2 = Picamera2()
+		preview_config = picam2.create_preview_configuration(main={"size": (2304, 1296)})
+		picam2.configure(preview_config)
+		picam2.start()
+		starttime = time.time()
+		white = (255,255,255)
+
 		x_start = 0.0
 		y_start = 0.0
 		theta_start = 0.0
 		velocity_l_start = 0.0
 		velocity_r_start = 0.0
-		delta_time = 0.1
+		delta_time = 0.5
+		obstacles = []
 
 #		pdb.set_trace()
 
-		x_target, y_target = (100, 0) # for now we have static target, later we implement camera to identify target
-		while True:
-			best_cost_benefit = -10000.0
-			obstacles = getObstacles()
+		x_target, y_target = (60, 0) # We identify static target
 
+		while True:
+			#obstacles = []
+			best_cost_benefit = -10000.0
+
+			img = picam2.capture_array()
+			start_calc = time.time()
+			print("\n Captured image at time", start_calc - starttime)
+
+			img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+			hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+			# lower mask (0-10)
+			lower_red = np.array([0,50,50])
+			upper_red = np.array([10,255,255])
+			mask0 = cv2.inRange(hsv, lower_red, upper_red)
+
+			# upper mask (170-180)
+			lower_red = np.array([170,50,50])
+			upper_red = np.array([180,255,255])
+			mask1 = cv2.inRange(hsv, lower_red, upper_red)
+
+			# join my masks
+			mask = mask0+mask1
+			result = cv2.bitwise_and(img, img, mask=mask)
+
+			output = cv2.connectedComponentsWithStats(mask, 4, cv2.CV_32F)
+			(numLabels, labels, stats, centroids) = output
+
+			# loop over the number of unique connected component labels
+			for i in range(0, numLabels):
+				# i=0 is the background region
+				if i != 0:
+					# extract the connected component statistics and centroid
+					x = stats[i, cv2.CC_STAT_LEFT]
+					y = stats[i, cv2.CC_STAT_TOP]
+					w = stats[i, cv2.CC_STAT_WIDTH]
+					h = stats[i, cv2.CC_STAT_HEIGHT]
+					area = stats[i, cv2.CC_STAT_AREA]
+					(cX, cY) = centroids[i]
+					if (area > 500):
+						#print("Component", i, "area", area, "Centroid", cX, cY)
+						#img = cv2.circle(img, (int(cX), int(cY)), 5, white, 3)
+						adjustedPixels = np.array([cX * 2, cY * 2, 1])
+						relativePosition = predictCoordinates(adjustedPixels)
+						obstacles.append(getTruePosition(x_start, y_start, theta_start, relativePosition))
+
+			print(obstacles)
+			end_calc = time.time()
+			calc_time = end_calc - start_calc
 			possible_velocities_l = [velocity_l_start - max_acceleration * delta_time, velocity_l_start, velocity_l_start + max_acceleration * delta_time]
 			possible_velocities_r = [velocity_r_start - max_acceleration * delta_time, velocity_r_start, velocity_r_start + max_acceleration * delta_time]
 
 			for velocity_l in possible_velocities_l:
 				for velocity_r in possible_velocities_r:
-					if velocity_l <= max_velocity and velocity_r <= max_velocity and velocity_l >= -max_velocity and velocity_r >= -max_velocity:
-						(x_new, y_new, theta_new) = predictMovement(velocity_l, velocity_r, x_start, y_start, theta_start, 10 * delta_time)
+					if velocity_l <= max_velocity and velocity_r <= max_velocity and velocity_l >= 0 and velocity_r >= 0:
+						(x_new, y_new, theta_new) = predictMovement(velocity_l, velocity_r, x_start, y_start, theta_start, 3 * delta_time)
 						(x_obstacle, y_obstacle) = getClosestObstacle(x_new, y_new, obstacles)
 						cost_benefit = costBenefit(x_start, y_start, x_new, y_new, x_obstacle, y_obstacle, x_target, y_target)
 						if cost_benefit > best_cost_benefit:
@@ -218,12 +281,21 @@ def dynamicWindowApproach():
 
 			BP.set_motor_dps(leftMotor, (velocity_l_chosen / wheel_radius) * (180 / pi))
 			BP.set_motor_dps(rightMotor, (velocity_r_chosen / wheel_radius) * (180 / pi))
+			print("vl: " + str(velocity_l_chosen) + ", vr: " + str(velocity_r_chosen))
 			velocity_l_start = velocity_l_chosen
 			velocity_r_start = velocity_r_chosen
+			print("current position: (x" + str(x_start) + ", y" + str(y_start) + ", theta" + str(theta_start) + ")")
 			x_start, y_start, theta_start = predictMovement(velocity_l_start, velocity_r_start, x_start, y_start, theta_start, delta_time)
-			time.sleep(delta_time)
-	except IOError as error:
-		print(error)
+			end_calc = time.time()
+			calc_time = end_calc - start_calc
+			print("Calculation time: ", calc_time)
+			if delta_time > calc_time:
+				time.sleep(delta_time - calc_time)
+
+	except KeyboardInterrupt:
+		BP.reset_all()
+		picam2.stop()
+		cv2.destroyAllWindows()
 
 # pixels: numpy (3x1) array [pix_x, pix_y, 1]
 # return: numpy (3x1) array [coord_x, coord_y, 1]
@@ -234,6 +306,7 @@ def predictCoordinates(pixels):
 
 def enableCamera():
 	picam2 = Picamera2()
+#	preview_config = picam2.create_preview_configuration(main={"size": (1152, 648)})
 	preview_config = picam2.create_preview_configuration(main={"size": (2304, 1296)})
 #	preview_config = picam2.create_preview_configuration()
 	picam2.configure(preview_config)
@@ -282,16 +355,16 @@ def enableCamera():
 				h = stats[i, cv2.CC_STAT_HEIGHT]
 				area = stats[i, cv2.CC_STAT_AREA]
 				(cX, cY) = centroids[i]
-				if (area > 100):
-					print("Component", i, "area", area, "Centroid", cX, cY)
+				if (area > 500):
+#					print("Component", i, "area", area, "Centroid", cX, cY)
 					img = cv2.circle(img, (int(cX), int(cY)), 5, white, 3)
 
-		font = cv2.FONT_HERSHEY_SIMPLEX
+		#font = cv2.FONT_HERSHEY_SIMPLEX
 
-		cv2.imwrite("Photos/demo.jpg", img)
-		print("drawImg:" + "/home/pi/RoboticsFYP/Photos/demo.jpg")
+#		cv2.imwrite("Photos/demo.jpg", img)
+		#print("drawImg:" + "/home/pi/RoboticsFYP/Photos/demo.jpg")
 		print("Captured image", j, "at time", time.time() - starttime)
-		cv2.imshow("Camera", img)
+#		cv2.imshow("Camera", img)
 
 		if cv2.waitKey(1) & 0xFF == ord('q'):
 			break
@@ -490,11 +563,14 @@ def drawContourMap():
 	plt.savefig("Photos/contour_map.png")
 	plt.show()
 
+dynamicWindowApproach()
+#BP.reset_all()
+"""
 try:
 	#print("All good!")
-	enableCamera()
+#	enableCamera()
 #	colourTest()
-	#dynamicWindowApproach()
+#	dynamicWindowApproach()
 	#while True:
 	#	BP.set_motor_dps(rightMotor, 180)
 	#	BP.set_motor_dps(leftMotor, 180)
@@ -503,4 +579,5 @@ try:
 	#BP.reset_all()
 except KeyboardInterrupt:
 	BP.reset_all()
+"""
 
