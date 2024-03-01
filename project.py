@@ -9,6 +9,8 @@ import brickpi3
 import math
 import numpy as np
 import random
+import cv2
+from picamera2 import Picamera2, Preview
 import pdb
 
 BP = brickpi3.BrickPi3()
@@ -136,7 +138,7 @@ def costBenefit(x, y, x_new, y_new, x_obstacle, y_obstacle, x_target, y_target):
 # return: [(x_obstacle, y_obstacle)]
 def getObstacles():
 	# placeholder until we implement camera
-	return [(20, 0), (40, -40), (40, 40), (60, 0), (80, -40), (80,40)]
+	return [(20, 0), (40, -40), (40, 40), (60, 0), (80, -40), (80,40), (50, 0), (60, 30)]
 
 # x: float (cm)
 # y: float (cm)
@@ -229,6 +231,76 @@ def predictCoordinates(pixels):
 	estimate = np.dot(camera_homography, pixels)
 	estimate = estimate / estimate[2]
 	return estimate
+
+def enableCamera():
+	picam2 = Picamera2()
+	#picam2.start_preview(Preview.QT)
+	preview_config = picam2.create_preview_configuration(main={"size": (640, 480)})
+	picam2.configure(preview_config)
+
+	picam2.start()
+
+	starttime = time.time()
+
+	white = (255,255,255)
+
+	for j in range(1000):
+		img = picam2.capture_array()
+
+		# Applying 7x7 Gaussian Blur
+		#img = cv2.GaussianBlur(img, (27, 27), 0)
+
+
+		img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+
+		hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+		# lower mask (0-10)
+		lower_red = np.array([0,50,50])
+		upper_red = np.array([10,255,255])
+		mask0 = cv2.inRange(hsv, lower_red, upper_red)
+
+		# upper mask (170-180)
+		lower_red = np.array([170,50,50])
+		upper_red = np.array([180,255,255])
+		mask1 = cv2.inRange(hsv, lower_red, upper_red)
+
+		# join my masks
+		mask = mask0+mask1
+		result = cv2.bitwise_and(img, img, mask=mask)
+
+		output = cv2.connectedComponentsWithStats(mask, 4, cv2.CV_32F)
+		(numLabels, labels, stats, centroids) = output
+
+		# loop over the number of unique connected component labels
+		for i in range(0, numLabels):
+			# i=0 is the background region
+			if i != 0:
+				# extract the connected component statistics and centroid
+				x = stats[i, cv2.CC_STAT_LEFT]
+				y = stats[i, cv2.CC_STAT_TOP]
+				w = stats[i, cv2.CC_STAT_WIDTH]
+				h = stats[i, cv2.CC_STAT_HEIGHT]
+				area = stats[i, cv2.CC_STAT_AREA]
+				(cX, cY) = centroids[i]
+				if (area > 5000):
+					print("Component", i, "area", area, "Centroid", cX, cY)
+					img = cv2.circle(img, (int(cX), int(cY)), 5, white, 3)
+
+		font = cv2.FONT_HERSHEY_SIMPLEX
+
+		cv2.imwrite("Photos/demo.jpg", img)
+		print("drawImg:" + "/home/pi/RoboticsFYP/Photos/demo.jpg")
+		print("Captured image", j, "at time", time.time() - starttime)
+		cv2.imshow("Camera", img)
+
+		if cv2.waitKey(1) & 0xFF == ord('q'):
+			break
+		# time.sleep(0.1)
+		# picam2.capture_file("demo.jpg")
+		# print("drawImg:" + "/home/pi/prac-files/demo.jpg")
+	picam2.stop()
+	cv2.destroyAllWindows()
 
 # row: numpy array [(pix_x, pix_y, coord_x, coord_y)]
 # return: numpy array of errors in cm, at pixel coords
@@ -396,7 +468,8 @@ def drawContourMap():
 
 try:
 	#print("All good!")
-	dynamicWindowApproach()
+	enableCamera()
+	#dynamicWindowApproach()
 	#while True:
 	#	BP.set_motor_dps(rightMotor, 180)
 	#	BP.set_motor_dps(leftMotor, 180)
