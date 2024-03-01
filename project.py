@@ -234,7 +234,7 @@ def predictCoordinates(pixels):
 
 def enableCamera():
 	picam2 = Picamera2()
-	preview_config = picam2.create_preview_configuration(main={"size": (1920, 1080)})
+	preview_config = picam2.create_preview_configuration(main={"size": (2304, 1296)})
 #	preview_config = picam2.create_preview_configuration()
 	picam2.configure(preview_config)
 
