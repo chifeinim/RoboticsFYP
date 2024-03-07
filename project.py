@@ -22,14 +22,23 @@ leftMotor = BP.PORT_A
 pi = math.pi
 wheel_radius = 2.8 # cm
 wheel_distance = 14.25 # cm
-max_acceleration = wheel_radius * 1 * pi # cms^(-2)
+max_acceleration = wheel_radius * 4 * pi # cms^(-2)
 max_velocity = 1 * max_acceleration # cms^(-1)
 floor_modifier_move = 1.02 # 1.02 = hard floor, ? = carpet
 floor_modifier_rotate = 1.08 # 1.08 = hard floor, ? = carpet
-camera_homography = np.array([
+camera_homography_2304x1296 = np.array([
 	(0.025307, 0.000016202, -56.024),
 	(-0.00037511, -0.014528, 65.596),
 	(0.000019383, 0.00080886, 1)], dtype = float)
+camera_homography_broken1 = np.array([
+	(21.089, -54.816, 387.73),
+	(-24.591, 3.8611, 1097.7),
+	(0.068574, 0.0030015, 1)], dtype = float)
+camera_homography_broken2 = np.linalg.inv(camera_homography_broken1)
+camera_homography_640x480 = np.array([
+	(0.078848, -0.0043416, -25.806),
+	(-0.00044719, -0.044198, 48.690),
+	(0.00026732, 0.0030178, 1)], dtype = float)
 
 # x1: float (cm)
 # y1: float (cm)
@@ -120,9 +129,9 @@ def moveStraightToWaypoint(x, y, theta, x_target, y_target):
 def costBenefit(x, y, x_new, y_new, x_obstacle, y_obstacle, x_target, y_target):
 	weight_benefit = 12
 	weight_cost = 16
-	safe_distance = 10 # cm
+	safe_distance = 15 # cm
 	radius_robot = wheel_distance / 2 # cm
-	radius_obstacle = 1 # cm
+	radius_obstacle = 2 # cm
 
 	benefit = weight_benefit * (distance(x, y, x_target, y_target) - distance(x_new, y_new, x_target, y_target))
 
@@ -195,7 +204,9 @@ def getTruePosition(x, y, theta, relative_x, relative_y):
 def dynamicWindowApproach():
 	try:
 		picam2 = Picamera2()
-		preview_config = picam2.create_preview_configuration(main={"size": (2304, 1296)})
+#		preview_config = picam2.create_preview_configuration(main={"size": (640, 480)})
+		preview_config = picam2.create_preview_configuration()
+
 		picam2.configure(preview_config)
 		picam2.start()
 		white = (255,255,255)
@@ -205,13 +216,13 @@ def dynamicWindowApproach():
 		theta_start = 0.0
 		velocity_l_start = 0.0
 		velocity_r_start = 0.0
-		delta_time = 0.5
+		delta_time = 0.1
 		obstacles = []
 		starttime = time.time()
 
 #		pdb.set_trace()
 
-		x_target, y_target = (60, 0) # We identify static target
+		x_target, y_target = (150, 0) # We identify static target
 
 		while True:
 			#obstacles = []
@@ -252,15 +263,15 @@ def dynamicWindowApproach():
 					h = stats[i, cv2.CC_STAT_HEIGHT]
 					area = stats[i, cv2.CC_STAT_AREA]
 					(cX, cY) = centroids[i]
-					if (area > 500):
+					if (area > 75):
 						#print("Component", i, "area", area, "Centroid", cX, cY)
 						#img = cv2.circle(img, (int(cX), int(cY)), 5, white, 3)
-						adjustedPixels = np.array([cX * 2, cY * 2, 1])
+						adjustedPixels = np.array([cX, cY, 1])
 						relativePosition = predictCoordinates(adjustedPixels)
 						relative_x = relativePosition[0]
 						relative_y = relativePosition[1]
 						(obstacle_x, obstacle_y) = getTruePosition(x_start, y_start, theta_start, relative_x, relative_y)
-						if any(distance(obst[0], obst[1], obstacle_x, obstacle_y) <= 5 for obst in obstacles):
+						if any(distance(obst[0], obst[1], obstacle_x, obstacle_y) <= 15 for obst in obstacles):
 							continue
 						obstacles.append((obstacle_x, obstacle_y))
 
@@ -273,7 +284,7 @@ def dynamicWindowApproach():
 			for velocity_l in possible_velocities_l:
 				for velocity_r in possible_velocities_r:
 					if velocity_l <= max_velocity and velocity_r <= max_velocity and velocity_l >= -max_velocity and velocity_r >= -max_velocity:
-						(x_new, y_new, theta_new) = predictMovement(velocity_l, velocity_r, x_start, y_start, theta_start, 3 * delta_time)
+						(x_new, y_new, theta_new) = predictMovement(velocity_l, velocity_r, x_start, y_start, theta_start, 10 * delta_time)
 						(x_obstacle, y_obstacle) = getClosestObstacle(x_new, y_new, obstacles)
 						cost_benefit = costBenefit(x_start, y_start, x_new, y_new, x_obstacle, y_obstacle, x_target, y_target)
 						if cost_benefit > best_cost_benefit:
@@ -305,7 +316,7 @@ def dynamicWindowApproach():
 # pixels: numpy (3x1) array [pix_x, pix_y, 1]
 # return: numpy (3x1) array [coord_x, coord_y, 1]
 def predictCoordinates(pixels):
-	estimate = np.dot(camera_homography, pixels)
+	estimate = np.dot(camera_homography_640x480, pixels)
 	estimate = estimate / estimate[2]
 	return estimate
 
@@ -360,15 +371,16 @@ def enableCamera():
 				h = stats[i, cv2.CC_STAT_HEIGHT]
 				area = stats[i, cv2.CC_STAT_AREA]
 				(cX, cY) = centroids[i]
-				if (area > 500):
-#					print("Component", i, "area", area, "Centroid", cX, cY)
+				if (area > 75):
+					print("Component", i, "area", area, "Centroid", cX, cY)
 					img = cv2.circle(img, (int(cX), int(cY)), 5, white, 3)
 
 		#font = cv2.FONT_HERSHEY_SIMPLEX
 
 #		cv2.imwrite("Photos/demo.jpg", img)
 		#print("drawImg:" + "/home/pi/RoboticsFYP/Photos/demo.jpg")
-		print("Captured image", j, "at time", time.time() - starttime)
+#		print("Captured image", j, "at time", time.time() - starttime)
+		print("\n")
 		cv2.imshow("Camera", img)
 
 		if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -403,6 +415,33 @@ def colourTest():
 
 	picam2.stop()
 	cv2.destroyAllWindows()
+
+def calculateHomography():
+	(x1, y1, u1, v1) = (46, 24, 10, 14)
+	(x2, y2, u2, v2) = (40, -20, 632, 10)
+	(x3, y3, u3, v3) = (12, 10, 50, 454)
+	(x4, y4, u4, v4) = (12, -8, 600, 429)
+
+	A = np.array([[x1, y1, 1, 0, 0, 0, -u1 * x1, -u1 * y1],
+	              [0, 0, 0, x1, y1, 1, -v1 * x1, -v1 * y1],
+	              [x2, y2, 1, 0, 0, 0, -u2 * x2, -u2 * y2],
+	              [0, 0, 0, x2, y2, 1, -v2 * x2, -v2 * y2],
+	              [x3, y3, 1, 0, 0, 0, -u3 * x3, -u3 * y3],
+	              [0, 0, 0, x3, y3, 1, -v3 * x3, -v3 * y3],
+	              [x4, y4, 1, 0, 0, 0, -u4 * x4, -u4 * y4],
+	              [0, 0, 0, x4, y4, 1, -v4 * x4, -v4 * y4]])
+
+	b = np.array([u1, v1, u2, v2, u3, v3, u4, v4])
+
+
+	R, residuals, RANK, sing = np.linalg.lstsq(A, b, rcond=None)
+
+	H = np.array([[R[0], R[1], R[2]],
+	              [R[3], R[4], R[5]],
+	              [R[6], R[7], 1]])
+
+	print ("Homography")
+	print (H)
 
 # row: numpy array [(pix_x, pix_y, coord_x, coord_y)]
 # return: numpy array of errors in cm, at pixel coords
@@ -568,12 +607,14 @@ def drawContourMap():
 	plt.savefig("Photos/contour_map.png")
 	plt.show()
 
-#dynamicWindowApproach()
+dynamicWindowApproach()
 #BP.reset_all()
 
+"""
 try:
 	#print("All good!")
-	enableCamera()
+#	calculateHomography()
+#	enableCamera()
 #	colourTest()
 #	dynamicWindowApproach()
 	#while True:
@@ -585,4 +626,4 @@ try:
 except KeyboardInterrupt:
 	BP.reset_all()
 
-
+#"""
