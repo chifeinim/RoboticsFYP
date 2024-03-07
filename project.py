@@ -1,18 +1,19 @@
 from __future__ import print_function
 from __future__ import division
 
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-import matplotlib.tri as tri
 import time
 import brickpi3
 import math
 import numpy as np
-import random
 import cv2
 from picamera2 import Picamera2, Preview
+"""
+import random
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import matplotlib.tri as tri
 import pdb
-
+"""
 BP = brickpi3.BrickPi3()
 
 rightMotor = BP.PORT_D
@@ -22,10 +23,11 @@ leftMotor = BP.PORT_A
 pi = math.pi
 wheel_radius = 2.8 # cm
 wheel_distance = 14.25 # cm
-max_acceleration = wheel_radius * 4 * pi # cms^(-2)
-max_velocity = 1 * max_acceleration # cms^(-1)
+max_acceleration = wheel_radius * 9 * pi # cms^(-2)
+max_velocity = 0.53 * max_acceleration # cms^(-1)
 floor_modifier_move = 1.02 # 1.02 = hard floor, ? = carpet
 floor_modifier_rotate = 1.08 # 1.08 = hard floor, ? = carpet
+"""
 camera_homography_2304x1296 = np.array([
 	(0.025307, 0.000016202, -56.024),
 	(-0.00037511, -0.014528, 65.596),
@@ -35,6 +37,7 @@ camera_homography_broken1 = np.array([
 	(-24.591, 3.8611, 1097.7),
 	(0.068574, 0.0030015, 1)], dtype = float)
 camera_homography_broken2 = np.linalg.inv(camera_homography_broken1)
+"""
 camera_homography_640x480 = np.array([
 	(0.078848, -0.0043416, -25.806),
 	(-0.00044719, -0.044198, 48.690),
@@ -46,7 +49,7 @@ camera_homography_640x480 = np.array([
 # y1: float (cm)
 def distance(x1, y1, x2, y2):
 	return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
-
+"""
 # length: float (cm)
 def moveStraight(length):
 	try:
@@ -116,7 +119,7 @@ def moveStraightToWaypoint(x, y, theta, x_target, y_target):
 
 	rotateAntiClockwise(beta)
 	moveStraight(distance(x, y, x_target, y_target))
-
+"""
 # x: float(cm)
 # y: float(cm)
 # x_new: float(cm)
@@ -129,7 +132,7 @@ def moveStraightToWaypoint(x, y, theta, x_target, y_target):
 def costBenefit(x, y, x_new, y_new, x_obstacle, y_obstacle, x_target, y_target):
 	weight_benefit = 12
 	weight_cost = 16
-	safe_distance = 15 # cm
+	safe_distance = 18 # cm
 	radius_robot = wheel_distance / 2 # cm
 	radius_obstacle = 2 # cm
 
@@ -204,8 +207,8 @@ def getTruePosition(x, y, theta, relative_x, relative_y):
 def dynamicWindowApproach():
 	try:
 		picam2 = Picamera2()
-#		preview_config = picam2.create_preview_configuration(main={"size": (640, 480)})
-		preview_config = picam2.create_preview_configuration()
+		preview_config = picam2.create_preview_configuration(main={"size": (640, 480)})
+#		preview_config = picam2.create_preview_configuration()
 
 		picam2.configure(preview_config)
 		picam2.start()
@@ -216,13 +219,13 @@ def dynamicWindowApproach():
 		theta_start = 0.0
 		velocity_l_start = 0.0
 		velocity_r_start = 0.0
-		delta_time = 0.1
+		delta_time = 0.08
 		obstacles = []
 		starttime = time.time()
 
 #		pdb.set_trace()
 
-		x_target, y_target = (150, 0) # We identify static target
+		x_target, y_target = (350, 0) # We identify static target
 
 		while True:
 			#obstacles = []
@@ -292,8 +295,8 @@ def dynamicWindowApproach():
 							velocity_r_chosen = velocity_r
 							best_cost_benefit = cost_benefit
 
-			BP.set_motor_dps(leftMotor, (velocity_l_chosen / wheel_radius) * (180 / pi))
-			BP.set_motor_dps(rightMotor, (velocity_r_chosen / wheel_radius) * (180 / pi))
+			BP.set_motor_dps(leftMotor, (velocity_l_chosen / wheel_radius) * (180 / pi) * 1.02)
+			BP.set_motor_dps(rightMotor, (velocity_r_chosen / wheel_radius) * (180 / pi) * 1.02)
 			print("vl: " + str(velocity_l_chosen) + ", vr: " + str(velocity_r_chosen))
 			velocity_l_start = velocity_l_chosen
 			velocity_r_start = velocity_r_chosen
@@ -319,7 +322,7 @@ def predictCoordinates(pixels):
 	estimate = np.dot(camera_homography_640x480, pixels)
 	estimate = estimate / estimate[2]
 	return estimate
-
+"""
 def enableCamera():
 	picam2 = Picamera2()
 #	preview_config = picam2.create_preview_configuration(main={"size": (1152, 648)})
@@ -606,6 +609,7 @@ def drawContourMap():
 	plt.gca().invert_yaxis()
 	plt.savefig("Photos/contour_map.png")
 	plt.show()
+"""
 
 dynamicWindowApproach()
 #BP.reset_all()
