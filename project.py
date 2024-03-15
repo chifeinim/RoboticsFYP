@@ -436,28 +436,6 @@ def calculateHomography():
 	print ("Homography")
 	print (HInv)
 
-# row: numpy array [(pix_x, pix_y, coord_x, coord_y)]
-# return: numpy array of errors in cm, at pixel coords
-# 	: [[pix_x, pix_y, error]]
-def homographyError(row):
-	nPoints = row.shape[0]
-	outputErrors = np.empty((nPoints, 3))
-	for i in range(nPoints):
-		pix_x = row[i][0]
-		pix_y = row[i][1]
-		coord_x = row[i][2]
-		coord_y = row[i][3]
-		pixels = np.array([pix_x, pix_y, 1])
-
-		estimate = predictCoordinates(pixels)
-		error_x = abs(coord_x - estimate[0])
-		error_y = abs(coord_y - estimate[1])
-		error = math.sqrt(math.pow(error_x, 2) + math.pow(error_y, 2))
-		outputErrors[i][0] = pix_x
-		outputErrors[i][1] = pix_y
-		outputErrors[i][2] = error
-
-	return outputErrors
 
 """
 dynamicWindowApproach()
