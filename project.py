@@ -7,13 +7,13 @@ import math
 import numpy as np
 import cv2
 from picamera2 import Picamera2, Preview
-"""
+
 import random
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.tri as tri
 import pdb
-"""
+
 BP = brickpi3.BrickPi3()
 
 rightMotor = BP.PORT_D
@@ -32,6 +32,11 @@ camera_homography_close = np.array([
 	(0.078848, -0.0043416, -25.806),
 	(-0.00044719, -0.044198, 48.690),
 	(0.00026732, 0.0030178, 1)], dtype = float)
+
+camera_homography_far = np.array([
+	( 1.89262936e-01,  5.69764586e-02, -6.73290016e+01),
+	(-3.70292742e-03, -1.68209037e-01,  1.31282103e+02),
+	( 2.50165420e-05,  3.94712742e-03,  1.00000000e+00)], dtype = float)
 
 # x1: float (cm)
 # y1: float (cm)
@@ -213,7 +218,7 @@ def dynamicWindowApproach():
 		obstacles = []
 		starttime = time.time()
 
-		x_target, y_target = (350, 0) # We identify static target
+		x_target, y_target = (150, 0) # We identify static target
 
 		while True:
 			#obstacles = []
@@ -254,7 +259,7 @@ def dynamicWindowApproach():
 					h = stats[i, cv2.CC_STAT_HEIGHT]
 					area = stats[i, cv2.CC_STAT_AREA]
 					(cX, cY) = centroids[i]
-					if (area > 75):
+					if (area > 50):
 						#print("Component", i, "area", area, "Centroid", cX, cY)
 						#img = cv2.circle(img, (int(cX), int(cY)), 5, white, 3)
 						adjustedPixels = np.array([cX, cY, 1])
@@ -283,8 +288,8 @@ def dynamicWindowApproach():
 							velocity_r_chosen = velocity_r
 							best_cost_benefit = cost_benefit
 
-			BP.set_motor_dps(leftMotor, (velocity_l_chosen / wheel_radius) * (180 / pi) * 1.02)
-			BP.set_motor_dps(rightMotor, (velocity_r_chosen / wheel_radius) * (180 / pi) * 1.02)
+			BP.set_motor_dps(leftMotor, (velocity_l_chosen / wheel_radius) * (180 / pi))
+			BP.set_motor_dps(rightMotor, (velocity_r_chosen / wheel_radius) * (180 / pi))
 			print("vl: " + str(velocity_l_chosen) + ", vr: " + str(velocity_r_chosen))
 			velocity_l_start = velocity_l_chosen
 			velocity_r_start = velocity_r_chosen
@@ -307,7 +312,7 @@ def dynamicWindowApproach():
 # pixels: numpy (3x1) array [pix_x, pix_y, 1]
 # return: numpy (3x1) array [coord_x, coord_y, 1]
 def predictCoordinates(pixels):
-	estimate = np.dot(camera_homography_close, pixels)
+	estimate = np.dot(camera_homography_far, pixels)
 	estimate = estimate / estimate[2]
 	return estimate
 
@@ -324,7 +329,8 @@ def enableCamera():
 
 	white = (255,255,255)
 
-	for j in range(1000):
+#	for j in range(1000):
+	while True:
 		img = picam2.capture_array()
 
 		# Applying 7x7 Gaussian Blur
@@ -362,13 +368,13 @@ def enableCamera():
 				h = stats[i, cv2.CC_STAT_HEIGHT]
 				area = stats[i, cv2.CC_STAT_AREA]
 				(cX, cY) = centroids[i]
-				if (area > 75):
+				if (area > 35):
 					print("Component", i, "area", area, "Centroid", cX, cY)
 					img = cv2.circle(img, (int(cX), int(cY)), 5, white, 3)
 
 		#font = cv2.FONT_HERSHEY_SIMPLEX
 
-#		cv2.imwrite("Photos/demo.jpg", img)
+		cv2.imwrite("Photos/demo.jpg", img)
 		#print("drawImg:" + "/home/pi/RoboticsFYP/Photos/demo.jpg")
 #		print("Captured image", j, "at time", time.time() - starttime)
 		print("\n")
@@ -408,10 +414,10 @@ def colourTest():
 	cv2.destroyAllWindows()
 
 def calculateHomography():
-	(x1, y1, u1, v1) = (-24, 46, 10, 14)
-	(x2, y2, u2, v2) = (20, 40, 632, 10)
-	(x3, y3, u3, v3) = (-10, 12, 50, 454)
-	(x4, y4, u4, v4) = (8, 12, 600, 429)
+	(x1, y1, u1, v1) = (20, 40, 587, 220)
+	(x2, y2, u2, v2) = (-20, 40, 38, 229)
+	(x3, y3, u3, v3) = (10, 20, 566, 431)
+	(x4, y4, u4, v4) = (-10, 20, 72, 436)
 
 	A = np.array([[x1, y1, 1, 0, 0, 0, -u1 * x1, -u1 * y1],
 	              [0, 0, 0, x1, y1, 1, -v1 * x1, -v1 * y1],
@@ -437,7 +443,7 @@ def calculateHomography():
 	print (HInv)
 
 
-"""
+
 dynamicWindowApproach()
 #BP.reset_all()
 
