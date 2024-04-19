@@ -24,7 +24,7 @@ pi = math.pi
 wheel_radius = 2.8 # cm
 wheel_distance = 14.25 # cm
 max_acceleration = wheel_radius * 9 * pi # cms^(-2)
-max_velocity = 0.53 * max_acceleration # cms^(-1)
+max_velocity = 0.45 * max_acceleration # cms^(-1)
 floor_modifier_move = 1.02 # 1.02 = hard floor, ? = carpet
 floor_modifier_rotate = 1.08 # 1.08 = hard floor, ? = carpet
 
@@ -34,9 +34,9 @@ camera_homography_close = np.array([
 	(0.00026732, 0.0030178, 1)], dtype = float)
 
 camera_homography_far = np.array([
-	( 1.89262936e-01,  5.69764586e-02, -6.73290016e+01),
-	(-3.70292742e-03, -1.68209037e-01,  1.31282103e+02),
-	( 2.50165420e-05,  3.94712742e-03,  1.00000000e+00)], dtype = float)
+	( 3.27608488e-01, -1.22650295e-02, -1.03846813e+02),
+	(-7.21019208e-03, -1.47772323e-01,  1.99606651e+02),
+	( 1.42430594e-04,  1.71995713e-02,  1.00000000e+00)], dtype = float)
 
 # x1: float (cm)
 # y1: float (cm)
@@ -218,7 +218,7 @@ def dynamicWindowApproach():
 		obstacles = []
 		starttime = time.time()
 
-		x_target, y_target = (150, 0) # We identify static target
+		x_target, y_target = (112, 0) # We identify static target
 
 		while True:
 			#obstacles = []
@@ -293,7 +293,7 @@ def dynamicWindowApproach():
 			print("vl: " + str(velocity_l_chosen) + ", vr: " + str(velocity_r_chosen))
 			velocity_l_start = velocity_l_chosen
 			velocity_r_start = velocity_r_chosen
-			print("current position: (x" + str(x_start) + ", y" + str(y_start) + ", theta" + str(theta_start) + ")")
+			print("current position: (x" + str(x_start) + ", y" + str(y_start) + ", theta" + str(theta_start * 180 / pi) + ")")
 			x_start, y_start, theta_start = predictMovement(velocity_l_start, velocity_r_start, x_start, y_start, theta_start, delta_time)
 			end_calc = time.time()
 			calc_time = end_calc - start_calc
@@ -414,10 +414,10 @@ def colourTest():
 	cv2.destroyAllWindows()
 
 def calculateHomography():
-	(x1, y1, u1, v1) = (20, 40, 587, 220)
-	(x2, y2, u2, v2) = (-20, 40, 38, 229)
-	(x3, y3, u3, v3) = (10, 20, 566, 431)
-	(x4, y4, u4, v4) = (-10, 20, 72, 436)
+	(x1, y1, u1, v1) = (20, 40, 581, 182)
+	(x2, y2, u2, v2) = (-20, 40, 63, 190)
+	(x3, y3, u3, v3) = (10, 20, 549, 354)
+	(x4, y4, u4, v4) = (-10, 20, 109, 363)
 
 	A = np.array([[x1, y1, 1, 0, 0, 0, -u1 * x1, -u1 * y1],
 	              [0, 0, 0, x1, y1, 1, -v1 * x1, -v1 * y1],
@@ -450,7 +450,7 @@ dynamicWindowApproach()
 """
 try:
 	#print("All good!")
-	calculateHomography()
+#	calculateHomography()
 #	enableCamera()
 #	colourTest()
 #	dynamicWindowApproach()
