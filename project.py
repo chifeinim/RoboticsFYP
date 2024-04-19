@@ -465,7 +465,7 @@ class Canvas:
 
 	def drawParticles(self,data):
 		display = [(self.__screenX(d[0]),self.__screenY(d[1])) + d[2:] for d in data]
-		#print("drawParticles:" + str(display))
+		print("drawParticles:" + str(display))
 
 	def __screenX(self,x):
 		return (x + self.margin)*self.scale
