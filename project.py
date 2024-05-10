@@ -450,9 +450,9 @@ def calculateHomography():
 #     - it takes care of a proper scaling and coordinate transformation between
 #      the map frame of reference (in cm) and the display (in pixels)
 class Canvas:
-	def __init__(self,map_size=210):
+	def __init__(self,map_size=150):
 		self.map_size    = map_size    # in cm;
-		self.canvas_size = 768;         # in pixels;
+		self.canvas_size = 1800;         # in pixels;
 		self.margin      = 0.05*map_size
 		self.scale       = self.canvas_size/(map_size+2*self.margin)
 
@@ -514,8 +514,8 @@ class Particles:
 
 	def move(self, velocity_l, velocity_r, delta_time):
 		if velocity_l == velocity_r:
-			straight_sd = 0.05 # for every 1cm
-			straight_angle_sd = 0.025 # for every 1cm
+			straight_sd = 0.025 # for every 1cm
+			straight_angle_sd = 0.01 # for every 1cm
 			e = np.random.normal(0, straight_sd * delta_time * velocity_l, self.n)
 			f = np.random.normal(0, straight_angle_sd * delta_time * velocity_l, self.n)
 			for k in range(self.n):
@@ -524,15 +524,15 @@ class Particles:
 				self.data[k][2] += f[k]
 
 		elif velocity_l == -velocity_r:
-			rotation_angle_sd = 1/45 * (pi / 180) # for every 1 radian, or 1/45 degrees per degree
+			rotation_angle_sd = 1/90 * (pi / 180) # for every 1 radian, or 1/90 degrees per degree
 			g = np.random.normal(0, rotation_angle_sd * abs(((velocity_r - velocity_l) * delta_time / wheel_distance)), self.n)
 			for k in range(self.n):
 				self.data[k][2] += ((velocity_r - velocity_l * delta_time / wheel_distance) + g[k])
 
 		else:
-			arc_radius_sd = 0.03 # for every 1cm
+			arc_radius_sd = 0.01 # for every 1cm
 			arc_radius = wheel_distance / 2 * (velocity_l + velocity_r) / (velocity_r - velocity_l)
-			delta_theta_sd = 0.02 * pi / 180 # for every 1 radian
+			delta_theta_sd = 0.01 * pi / 180 # for every 1 radian
 			delta_theta = (velocity_r - velocity_l) * delta_time / wheel_distance
 			h = np.random.normal(0, abs(arc_radius_sd * arc_radius), self.n)
 			i = np.random.normal(0, abs(delta_theta_sd * delta_theta), self.n)
@@ -605,7 +605,8 @@ def calculate_likelihood(x, y, theta, z):
 		likelihood = (math.e ** ((-(best_score) ** 2) / (2 * sd ** 2))) + K
 	return likelihood
 
-waymarks  = np.array([(20,10), (70, 10), (60, 40), (30, 40)])
+#waymarks  = np.array([(20,10), (70, 10), (60, 40), (30, 40)])
+waymarks = np.array([(20, 20)]
 
 def monteCarloLocalisation():
 	try:
@@ -729,10 +730,16 @@ def monteCarloLocalisation():
 
 canvas = Canvas()
 my_map = Map()
+"""
 my_map.add_wall((20,10,70,10))
 my_map.add_wall((70,10,60,40))
 my_map.add_wall((60,40,30,40))
 my_map.add_wall((30,40,20,10))
+"""
+my_map.add_wall((19,19,19,21))
+my_map.add_wall((19,21,21,21))
+my_map.add_wall((21,21,21,19))
+my_map.add_wall((21,19,19,19))
 my_map.draw()
 particles = Particles()
 monteCarloLocalisation()
