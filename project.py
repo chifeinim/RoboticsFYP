@@ -450,9 +450,9 @@ def calculateHomography():
 #     - it takes care of a proper scaling and coordinate transformation between
 #      the map frame of reference (in cm) and the display (in pixels)
 class Canvas:
-	def __init__(self,map_size=150):
+	def __init__(self,map_size=210):
 		self.map_size    = map_size    # in cm;
-		self.canvas_size = 1800;         # in pixels;
+		self.canvas_size = 768;         # in pixels;
 		self.margin      = 0.05*map_size
 		self.scale       = self.canvas_size/(map_size+2*self.margin)
 
@@ -606,7 +606,7 @@ def calculate_likelihood(x, y, theta, z):
 	return likelihood
 
 #waymarks  = np.array([(20,10), (70, 10), (60, 40), (30, 40)])
-waymarks = np.array([(20, 20)]
+waymarks = np.array([(20, 20)])
 
 def monteCarloLocalisation():
 	try:
