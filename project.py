@@ -28,15 +28,21 @@ max_velocity = 0.45 * max_acceleration # cms^(-1)
 floor_modifier_move = 1.02 # 1.02 = hard floor, ? = carpet
 floor_modifier_rotate = 1.08 # 1.08 = hard floor, ? = carpet
 
+"""
 camera_homography_close = np.array([
 	(0.078848, -0.0043416, -25.806),
 	(-0.00044719, -0.044198, 48.690),
 	(0.00026732, 0.0030178, 1)], dtype = float)
 
-camera_homography_far = np.array([
+camera_homography_old = np.array([
 	( 3.27608488e-01, -1.22650295e-02, -1.03846813e+02),
 	(-7.21019208e-03, -1.47772323e-01,  1.99606651e+02),
 	( 1.42430594e-04,  1.71995713e-02,  1.00000000e+00)], dtype = float)
+"""
+camera_homography_far = np.array([
+	( 7.19284302e-01, -9.23660682e-03, -2.31074218e+02),
+	(-1.54370083e-02, -2.79017572e-01,  4.35326023e+02),
+	(-6.53442277e-04,  3.88591518e-02,  1.00000000e+00)], dtype = float)
 
 # x1: float (cm)
 # y1: float (cm)
@@ -414,10 +420,10 @@ def colourTest():
 	cv2.destroyAllWindows()
 
 def calculateHomography():
-	(x1, y1, u1, v1) = (20, 40, 581, 182)
-	(x2, y2, u2, v2) = (-20, 40, 63, 190)
-	(x3, y3, u3, v3) = (10, 20, 549, 354)
-	(x4, y4, u4, v4) = (-10, 20, 109, 363)
+	(x1, y1, u1, v1) = (20, 40, 578, 219)
+	(x2, y2, u2, v2) = (-20, 40, 64, 216)
+	(x3, y3, u3, v3) = (10, 20, 547, 392)
+	(x4, y4, u4, v4) = (-10, 20, 101, 393)
 
 	A = np.array([[x1, y1, 1, 0, 0, 0, -u1 * x1, -u1 * y1],
 	              [0, 0, 0, x1, y1, 1, -v1 * x1, -v1 * y1],
@@ -747,6 +753,8 @@ particles = Particles()
 monteCarloLocalisation()
 #dynamicWindowApproach()
 
+#enableCamera()
+#calculateHomography()
 BP.reset_all()
 
 """
