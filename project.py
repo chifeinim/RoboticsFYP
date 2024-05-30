@@ -534,7 +534,7 @@ class Particles:
 			for k in range(self.n):
 				self.data[k][0] += (arc_radius + h[k]) * (math.sin(delta_theta + i[k] + self.data[k][2]) - math.sin(self.data[k][2]))
 				self.data[k][1] -= (arc_radius + h[k]) * (math.cos(delta_theta + i[k] + self.data[k][2]) - math.cos(self.data[k][2]))
-				self.data[k][0] += delta_theta + i[k]
+				self.data[k][2] += delta_theta + i[k]
 
 	def update_weights(self, z):
 		# adjust weights
@@ -630,7 +630,7 @@ def monteCarloLocalisation():
 				print("Target: (" + str(x_target) + ", " + str(y_target) + ")")
 				distance_to_waypoint = distance(x_start, y_start, x_target, y_target)
 				print("Distance to waypoint: " + str(distance_to_waypoint))
-				if distance_to_waypoint < 7:
+				if distance_to_waypoint < 2:
 					break
 
 				z = []
@@ -720,6 +720,7 @@ def monteCarloLocalisation():
 						time.sleep(delta_time - calc_time)
 				else:
 					time.sleep(delta_time)
+		BP.reset_all()
 
 	except KeyboardInterrupt:
 		BP.reset_all()
