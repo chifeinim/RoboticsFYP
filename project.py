@@ -509,10 +509,10 @@ class Particles:
 
 	def move(self, velocity_l, velocity_r, delta_time):
 		if velocity_l == velocity_r:
-			straight_sd = 0.025 # for every 1cm
-			straight_angle_sd = 0.01 # for every 1cm
-			e = np.random.normal(0, straight_sd * delta_time * velocity_l, self.n)
-			f = np.random.normal(0, straight_angle_sd * delta_time * velocity_l, self.n)
+			straight_sd = 0.005 # for every 1cm
+			straight_angle_sd = 0.005 # for every 1cm
+			e = np.random.normal(0, abs(straight_sd * delta_time * velocity_l), self.n)
+			f = np.random.normal(0, abs(straight_angle_sd * delta_time * velocity_l), self.n)
 			for k in range(self.n):
 				self.data[k][0] += (velocity_l * delta_time + e[k]) * math.cos(self.data[k][2])
 				self.data[k][1] += (velocity_l * delta_time + e[k]) * math.sin(self.data[k][2])
@@ -527,7 +527,7 @@ class Particles:
 		else:
 			arc_radius_sd = 0.0025 # for every 1cm
 			arc_radius = wheel_distance / 2 * (velocity_l + velocity_r) / (velocity_r - velocity_l)
-			delta_theta_sd = 0.0025 * pi / 180 # for every 1 radian
+			delta_theta_sd = 0.005 * pi / 180 # for every 1 radian
 			delta_theta = (velocity_r - velocity_l) * delta_time / wheel_distance
 			h = np.random.normal(0, abs(arc_radius_sd * arc_radius), self.n)
 			i = np.random.normal(0, abs(delta_theta_sd * delta_theta), self.n)
@@ -734,7 +734,7 @@ my_map.add_wall((20,10,70,10))
 my_map.add_wall((70,10,60,40))
 my_map.add_wall((60,40,30,40))
 my_map.add_wall((30,40,20,10))
-"""
+
 my_map.add_wall((55,24,55,22))
 my_map.add_wall((55,22,57,22))
 my_map.add_wall((57,22,57,24))
@@ -743,7 +743,7 @@ my_map.draw()
 particles = Particles()
 monteCarloLocalisation()
 #dynamicWindowApproach()
-
+"""
 #enableCamera()
 #calculateHomography()
 BP.reset_all()
