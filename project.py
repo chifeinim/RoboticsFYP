@@ -601,7 +601,7 @@ def calculate_likelihood(x, y, theta, z):
 	return likelihood
 
 #waymarks  = np.array([(20,10), (70, 10), (60, 40), (30, 40)])
-waymarks = np.array([(20, 20)])
+waymarks = np.array([(37, 23)])
 
 def monteCarloLocalisation():
 	try:
@@ -733,10 +733,10 @@ my_map.add_wall((70,10,60,40))
 my_map.add_wall((60,40,30,40))
 my_map.add_wall((30,40,20,10))
 """
-my_map.add_wall((19,19,19,21))
-my_map.add_wall((19,21,21,21))
-my_map.add_wall((21,21,21,19))
-my_map.add_wall((21,19,19,19))
+my_map.add_wall((36,24,36,22))
+my_map.add_wall((36,22,38,22))
+my_map.add_wall((28,22,38,24))
+my_map.add_wall((38,24,36,24))
 my_map.draw()
 particles = Particles()
 monteCarloLocalisation()
