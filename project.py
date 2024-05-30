@@ -525,9 +525,9 @@ class Particles:
 				self.data[k][2] += ((velocity_r - velocity_l * delta_time / wheel_distance) + g[k])
 
 		else:
-			arc_radius_sd = 0.01 # for every 1cm
+			arc_radius_sd = 0.0025 # for every 1cm
 			arc_radius = wheel_distance / 2 * (velocity_l + velocity_r) / (velocity_r - velocity_l)
-			delta_theta_sd = 0.01 * pi / 180 # for every 1 radian
+			delta_theta_sd = 0.0025 * pi / 180 # for every 1 radian
 			delta_theta = (velocity_r - velocity_l) * delta_time / wheel_distance
 			h = np.random.normal(0, abs(arc_radius_sd * arc_radius), self.n)
 			i = np.random.normal(0, abs(delta_theta_sd * delta_theta), self.n)
@@ -627,9 +627,10 @@ def monteCarloLocalisation():
 		for (x_target, y_target) in waypoints:
 
 			while True:
+				print("Target: (" + str(x_target) + ", " + str(y_target) + ")")
 				distance_to_waypoint = distance(x_start, y_start, x_target, y_target)
 				print("Distance to waypoint: " + str(distance_to_waypoint))
-				if distance_to_waypoint < 1:
+				if distance_to_waypoint < 7:
 					break
 
 				z = []
