@@ -632,7 +632,9 @@ def monteCarloLocalisation():
 		for (x_target, y_target) in waypoints:
 
 			while True:
-				if distance(x_start, y_start, x_target, y_target) < 1:
+				distance_to_waypoint = distance(x_start, y_start, x_target, y_target)
+				print("Distance to waypoint: " + str(distance_to_waypoint))
+				if distance_to_waypoint < 1:
 					break
 
 				z = []
