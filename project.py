@@ -577,7 +577,7 @@ def calculate_likelihood(x, y, theta, z):
 	if not z:
 		likelihood = K
 	else:
-		expected_distances = [distance(x, y, x_n, y_n) for (x_n, y_n) in waymarks]
+		expected_distances = [distance(x, y, x_n, y_n) for (x_n, y_n) in waymark_list]
 		waymarks_detected = len(z)
 		best_score = np.inf
 		if waymarks_detected == 1:
@@ -600,13 +600,8 @@ def calculate_likelihood(x, y, theta, z):
 		likelihood = (math.e ** ((-(best_score) ** 2) / (2 * sd ** 2))) + K
 	return likelihood
 
-#waymarks  = np.array([(20,10), (70, 10), (60, 40), (30, 40)])
-waymarks = np.array([(56, 23)])
-
-def monteCarloLocalisation():
+def monteCarloLocalisation(waypoints):
 	try:
-		waypoints = np.array([(90, 0), (90, 50), (0, 50), (0, 0)])
-
 		picam2 = Picamera2()
 		preview_config = picam2.create_preview_configuration(main={"size": (640, 480)})
 #		preview_config = picam2.create_preview_configuration()
@@ -727,41 +722,30 @@ def monteCarloLocalisation():
 		picam2.stop()
 		cv2.destroyAllWindows()
 
-canvas = Canvas()
-my_map = Map()
-"""
-my_map.add_wall((20,10,70,10))
-my_map.add_wall((70,10,60,40))
-my_map.add_wall((60,40,30,40))
-my_map.add_wall((30,40,20,10))
+def initialiseMap(waymarks, waypoints):
 
-my_map.add_wall((55,24,55,22))
-my_map.add_wall((55,22,57,22))
-my_map.add_wall((57,22,57,24))
-my_map.add_wall((57,24,55,24))
-my_map.draw()
-particles = Particles()
+	canvas = Canvas()
+	my_map = Map()
+
+	for (x, y) in waymarks:
+		my_map.add_wall((x-1, y+1, x-1, y-1))
+		my_map.add_wall((x-1, y-1, x+1, y-1))
+		my_map.add_wall((x+1, y-1, x+1, y+1))
+		my_map.add_wall((x+1, y+1, x-1, y+1))
+
+	for (x, y) in waypoints:
+		my_map.add_wall((x-1, y+1, x+1, y-1))
+		my_map.add_wall((x+1, y+1, x-1, y-1))
+
+	my_map.draw()
+	particles = Particles()
+
+waymark_list = np.array([(56, 23)])
+waypoint_list = np.array([(90, 0), (90, 50), (0, 50), (0, 0)])
+
+initialiseMap(waymark_list, waypoint_list)
 monteCarloLocalisation()
 #dynamicWindowApproach()
-"""
 #enableCamera()
 #calculateHomography()
 BP.reset_all()
-
-"""
-try:
-	#print("All good!")
-#	calculateHomography()
-#	enableCamera()
-#	colourTest()
-#	dynamicWindowApproach()
-	#while True:
-	#	BP.set_motor_dps(rightMotor, 180)
-	#	BP.set_motor_dps(leftMotor, 180)
-	#print(homographyError(depth_60))
-	#drawContourMap()
-	#BP.reset_all()
-except KeyboardInterrupt:
-	BP.reset_all()
-
-#"""
