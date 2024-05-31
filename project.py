@@ -26,7 +26,7 @@ wheel_distance = 14.25 # cm
 max_acceleration = wheel_radius * 9 * pi # cms^(-2)
 max_velocity = 0.45 * max_acceleration # cms^(-1)
 floor_modifier_move = 1.02 # 1.02 = hard floor, ? = carpet
-floor_modifier_rotate = 1.08 # 1.08 = hard floor, ? = carpet
+floor_modifier_rotate = 1.1 # 1.08 = hard floor, ? = carpet
 
 camera_homography_far = np.array([
 	( 7.19284302e-01, -9.23660682e-03, -2.31074218e+02),
