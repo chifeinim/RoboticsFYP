@@ -479,7 +479,7 @@ class Map:
 	def clear(self):
 		self.walls = []
 
-	def draw(self):
+	def draw(self, canvas):
 		for wall in self.walls:
 			canvas.drawLine(wall)
 
@@ -568,7 +568,7 @@ class Particles:
 	def mean(self):
 		return np.mean(self.data, axis=0)[:3]
 
-	def draw(self):
+	def draw(self, canvas):
 		tupleParticles = list(map(tuple, self.data.reshape((self.n, 4))))
 		canvas.drawParticles(tupleParticles)
 
@@ -600,7 +600,7 @@ def calculate_likelihood(x, y, theta, z):
 		likelihood = (math.e ** ((-(best_score) ** 2) / (2 * sd ** 2))) + K
 	return likelihood
 
-def monteCarloLocalisation(waypoints):
+def monteCarloLocalisation(waypoints, particles, canvas):
 	try:
 		picam2 = Picamera2()
 		preview_config = picam2.create_preview_configuration(main={"size": (640, 480)})
@@ -702,7 +702,7 @@ def monteCarloLocalisation(waypoints):
 				print("mean")
 				particles.resample()
 				print(particles.mean())
-				particles.draw()
+				particles.draw(canvas)
 
 				velocity_l_start = velocity_l_chosen
 				velocity_r_start = velocity_r_chosen
@@ -722,7 +722,7 @@ def monteCarloLocalisation(waypoints):
 		picam2.stop()
 		cv2.destroyAllWindows()
 
-def initialiseMap(waymarks, waypoints):
+def initialiseMCL(waymarks, waypoints):
 
 	canvas = Canvas()
 	my_map = Map()
@@ -737,14 +737,14 @@ def initialiseMap(waymarks, waypoints):
 		my_map.add_wall((x-1, y+1, x+1, y-1))
 		my_map.add_wall((x+1, y+1, x-1, y-1))
 
-	my_map.draw()
+	my_map.draw(canvas)
 	particles = Particles()
+	monteCarloLocalisation(waypoints, particles, canvas)
 
 waymark_list = np.array([(56, 23)])
 waypoint_list = np.array([(90, 0), (90, 50), (0, 50), (0, 0)])
 
-initialiseMap(waymark_list, waypoint_list)
-monteCarloLocalisation()
+initialiseMCL(waymark_list, waypoint_list)
 #dynamicWindowApproach()
 #enableCamera()
 #calculateHomography()
