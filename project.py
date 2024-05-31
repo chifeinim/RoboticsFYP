@@ -625,7 +625,7 @@ def monteCarloLocalisation(waypoints, particles, canvas):
 				print("Target: (" + str(x_target) + ", " + str(y_target) + ")")
 				distance_to_waypoint = distance(x_start, y_start, x_target, y_target)
 				print("Distance to waypoint: " + str(distance_to_waypoint))
-				if distance_to_waypoint < 1:
+				if distance_to_waypoint < 2:
 					break
 
 				z = []
