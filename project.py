@@ -692,8 +692,16 @@ def monteCarloLocalisation(waypoints, particles, canvas):
 								velocity_r_chosen = velocity_r
 								best_cost_benefit = cost_benefit
 
-				BP.set_motor_dps(leftMotor, (velocity_l_chosen / wheel_radius) * (180 / pi))
-				BP.set_motor_dps(rightMotor, (velocity_r_chosen / wheel_radius) * (180 / pi))
+				# We do this to make turning tighter. Has no effect on particle calculations.
+				difference = abs(velocity_l_chosen - velocity_r_chosen)
+				sum = abs(velocity_l_chosen + velocity_r_chosen)
+				if (difference < 0.000001 or sum < 0.000001):
+					BP.set_motor_dps(leftMotor, (velocity_l_chosen / wheel_radius) * (180 / pi))
+					BP.set_motor_dps(rightMotor, (velocity_r_chosen / wheel_radius) * (180 / pi))
+				else:
+					BP.set_motor_dps(leftMotor, floor_modifier_rotate * (velocity_l_chosen / wheel_radius) * (180 / pi))
+					BP.set_motor_dps(rightMotor, floor_modifier_rotate * (velocity_r_chosen / wheel_radius) * (180 / pi))
+
 				print("vl: " + str(velocity_l_chosen) + ", vr: " + str(velocity_r_chosen))
 				# New Particles code:
 				particles.move(velocity_l_chosen, velocity_r_chosen, delta_time)
@@ -744,7 +752,7 @@ def initialiseMCL(waymarks, waypoints):
 #waymark_list = np.array([(56, 23)])
 waymark_list = np.array([])
 #waypoint_list = np.array([(90, 0), (90, 50), (0, 50), (0, 0)])
-waypoint_list = np.array([(0, 50))
+waypoint_list = np.array([(0, 50), (90, 50), (90, 0), (0, 0)])
 
 initialiseMCL(waymark_list, waypoint_list)
 #dynamicWindowApproach()
