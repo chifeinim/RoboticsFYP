@@ -445,7 +445,7 @@ def calculateHomography():
 #     - it takes care of a proper scaling and coordinate transformation between
 #      the map frame of reference (in cm) and the display (in pixels)
 class Canvas:
-	def __init__(self,map_size=80):
+	def __init__(self,map_size=60):
 		self.map_size    = map_size    # in cm;
 		self.canvas_size = 768;         # in pixels;
 		self.margin      = 0.25*map_size
@@ -508,7 +508,7 @@ class Particles:
 		self.data[:, 3] = 1 / self.n
 
 	def move(self, velocity_l, velocity_r, delta_time):
-		if velocity_l == velocity_r:
+		if abs(velocity_l - velocity_r) < 0.001:
 			straight_sd = 0.005 # for every 1cm
 			straight_angle_sd = 0.002 # for every 1cm
 			e = np.random.normal(0, abs(straight_sd * delta_time * velocity_l), self.n)
@@ -518,7 +518,7 @@ class Particles:
 				self.data[k][1] += (velocity_l * delta_time + e[k]) * math.sin(self.data[k][2])
 				self.data[k][2] += f[k]
 
-		elif velocity_l == -velocity_r:
+		elif abs(velocity_l + velocity_r) < 0.001:
 			rotation_angle_sd = 1/90 * (pi / 180) # for every 1 radian, or 1/90 degrees per degree
 			g = np.random.normal(0, rotation_angle_sd * abs(((velocity_r - velocity_l) * delta_time / wheel_distance)), self.n)
 			for k in range(self.n):
