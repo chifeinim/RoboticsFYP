@@ -24,9 +24,9 @@ pi = math.pi
 wheel_radius = 2.8 # cm
 wheel_distance = 14.25 # cm
 max_acceleration = wheel_radius * 9 * pi # cms^(-2)
-max_velocity = 0.45 * max_acceleration # cms^(-1)
+max_velocity = 0.6 * max_acceleration # cms^(-1)
 floor_modifier_move = 1.02 # 1.02 = hard floor, ? = carpet
-floor_modifier_rotate = 1.1 # 1.08 = hard floor, ? = carpet
+floor_modifier_rotate = 1.0 # 1.1 = hard floor, ? = carpet
 
 camera_homography_far = np.array([
 	( 7.19284302e-01, -9.23660682e-03, -2.31074218e+02),
@@ -573,7 +573,7 @@ class Particles:
 		canvas.drawParticles(tupleParticles)
 
 def calculate_likelihood(x, y, theta, z):
-	K = 0.0001
+	K = 0.000001
 	if not z or waymark_list.size:
 		likelihood = K
 	else:
@@ -581,16 +581,7 @@ def calculate_likelihood(x, y, theta, z):
 		(z_x, z_y) = z
 		expected_distance = distance(x, y, x_waymark, y_waymark)
 		measured_distance = distance(x, y, z_x, z_y)
-		"""
-		expected_distances = [distance(x, y, x_n, y_n) for (x_n, y_n) in waymark_list]
-		best_score = np.inf
-		if waymarks_detected == 1:
-			for dist in expected_distances:
-				difference = abs((distance(z[0][0], z[0][1], x, y) - dist))
-				if difference < best_score:
-					best_score = difference
-		"""
-		sd = 1
+		sd = 0.1 * measured_distance
 		likelihood = (math.e ** ((-(measured_distance - expected_distance) ** 2) / (2 * sd ** 2))) + K
 	return likelihood
 
