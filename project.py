@@ -574,30 +574,24 @@ class Particles:
 
 def calculate_likelihood(x, y, theta, z):
 	K = 0.0001
-	if not z:
+	if not z or waymark_list.size:
 		likelihood = K
 	else:
+		(x_waymark, y_waymark) = waymark_list[0]
+		(z_x, z_y) = z
+		expected_distance = distance(x, y, x_waymark, y_waymark)
+		measured_distance = distance(x, y, z_x, z_y)
+		"""
 		expected_distances = [distance(x, y, x_n, y_n) for (x_n, y_n) in waymark_list]
-		waymarks_detected = len(z)
 		best_score = np.inf
 		if waymarks_detected == 1:
 			for dist in expected_distances:
 				difference = abs((distance(z[0][0], z[0][1], x, y) - dist))
 				if difference < best_score:
 					best_score = difference
-
-		elif waymarks_detected == 2:
-			for dist in expected_distances:
-				for (z1_x, z1_y) in z:
-					for (z2_x, z2_y) in z:
-						difference1 = abs((distance(z1_x, z1_y, x, y) - dist))
-						difference2 = abs((distance(z2_x, z2_y, x, y) - dist))
-						difference = difference1 * difference2
-						if difference < best_score:
-							best_score = difference
-
+		"""
 		sd = 1
-		likelihood = (math.e ** ((-(best_score) ** 2) / (2 * sd ** 2))) + K
+		likelihood = (math.e ** ((-(measured_distance - expected_distance) ** 2) / (2 * sd ** 2))) + K
 	return likelihood
 
 def monteCarloLocalisation(waypoints, particles, canvas):
@@ -749,10 +743,10 @@ def initialiseMCL(waymarks, waypoints):
 	particles = Particles()
 	monteCarloLocalisation(waypoints, particles, canvas)
 
-#waymark_list = np.array([(56, 23)])
-waymark_list = np.array([])
-#waypoint_list = np.array([(90, 0), (90, 50), (0, 50), (0, 0)])
-waypoint_list = np.array([(0, 50), (90, 50), (90, 0), (0, 0)])
+waymark_list = np.array([(56, 23)])
+#waymark_list = np.array([])
+waypoint_list = np.array([(90, 0), (90, 50), (0, 50), (0, 0)])
+#waypoint_list = np.array([(0, 50), (90, 50), (90, 0), (0, 0)])
 
 initialiseMCL(waymark_list, waypoint_list)
 #dynamicWindowApproach()
