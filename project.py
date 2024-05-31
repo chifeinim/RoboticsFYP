@@ -509,7 +509,7 @@ class Particles:
 
 	def move(self, velocity_l, velocity_r, delta_time):
 		if abs(velocity_l - velocity_r) < 0.000001:
-			straight_sd = 0.005 # for every 1cm
+			straight_sd = 0.01 # for every 1cm
 			straight_angle_sd = 0.002 # for every 1cm
 			e = np.random.normal(0, abs(straight_sd * delta_time * velocity_l), self.n)
 			f = np.random.normal(0, abs(straight_angle_sd * delta_time * velocity_l), self.n)
@@ -525,7 +525,7 @@ class Particles:
 				self.data[k][2] += ((velocity_r - velocity_l * delta_time / wheel_distance) + g[k])
 
 		else:
-			arc_radius_sd = 0.0025 # for every 1cm
+			arc_radius_sd = 0.005 # for every 1cm
 			arc_radius = wheel_distance / 2 * (velocity_l + velocity_r) / (velocity_r - velocity_l)
 			delta_theta_sd = 0.002 * pi / 180 # for every 1 radian
 			delta_theta = (velocity_r - velocity_l) * delta_time / wheel_distance
