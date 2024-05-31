@@ -508,7 +508,7 @@ class Particles:
 		self.data[:, 3] = 1 / self.n
 
 	def move(self, velocity_l, velocity_r, delta_time):
-		if abs(velocity_l - velocity_r) < 0.001:
+		if abs(velocity_l - velocity_r) < 0.000001:
 			straight_sd = 0.005 # for every 1cm
 			straight_angle_sd = 0.002 # for every 1cm
 			e = np.random.normal(0, abs(straight_sd * delta_time * velocity_l), self.n)
@@ -518,7 +518,7 @@ class Particles:
 				self.data[k][1] += (velocity_l * delta_time + e[k]) * math.sin(self.data[k][2])
 				self.data[k][2] += f[k]
 
-		elif abs(velocity_l + velocity_r) < 0.001:
+		elif abs(velocity_l + velocity_r) < 0.000001:
 			rotation_angle_sd = 1/90 * (pi / 180) # for every 1 radian, or 1/90 degrees per degree
 			g = np.random.normal(0, rotation_angle_sd * abs(((velocity_r - velocity_l) * delta_time / wheel_distance)), self.n)
 			for k in range(self.n):
@@ -741,8 +741,10 @@ def initialiseMCL(waymarks, waypoints):
 	particles = Particles()
 	monteCarloLocalisation(waypoints, particles, canvas)
 
-waymark_list = np.array([(56, 23)])
-waypoint_list = np.array([(90, 0), (90, 50), (0, 50), (0, 0)])
+#waymark_list = np.array([(56, 23)])
+waymark_list = np.array([])
+#waypoint_list = np.array([(90, 0), (90, 50), (0, 50), (0, 0)])
+waypoint_list = np.array([(0, 50))
 
 initialiseMCL(waymark_list, waypoint_list)
 #dynamicWindowApproach()
