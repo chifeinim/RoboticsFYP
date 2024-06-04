@@ -29,9 +29,9 @@ floor_modifier_move = 1.02 # 1.02 = hard floor, ? = carpet
 floor_modifier_rotate = 1.0 # 1.1 = hard floor, ? = carpet
 
 camera_homography_far = np.array([
-	( 7.19284302e-01, -9.23660682e-03, -2.31074218e+02),
-	(-1.54370083e-02, -2.79017572e-01,  4.35326023e+02),
-	(-6.53442277e-04,  3.88591518e-02,  1.00000000e+00)], dtype = float)
+	( 2.80376281e+00, -8.24497129e-02, -8.78552444e+02),
+	(-5.66343586e-02, -1.00352252e+00,  1.67727228e+03),
+	( 8.24903567e-04,  1.55051755e-01,  1.00000000e+00)], dtype = float)
 
 # x1: float (cm)
 # y1: float (cm)
@@ -363,7 +363,7 @@ def enableCamera():
 				h = stats[i, cv2.CC_STAT_HEIGHT]
 				area = stats[i, cv2.CC_STAT_AREA]
 				(cX, cY) = centroids[i]
-				if (area > 35):
+				if (area > 75):
 					print("Component", i, "area", area, "Centroid", cX, cY)
 					img = cv2.circle(img, (int(cX), int(cY)), 5, white, 3)
 
@@ -409,10 +409,10 @@ def colourTest():
 	cv2.destroyAllWindows()
 
 def calculateHomography():
-	(x1, y1, u1, v1) = (20, 40, 578, 219)
-	(x2, y2, u2, v2) = (-20, 40, 64, 216)
-	(x3, y3, u3, v3) = (10, 20, 547, 392)
-	(x4, y4, u4, v4) = (-10, 20, 101, 393)
+	(x1, y1, u1, v1) = (20, 70, 472, 131)
+	(x2, y2, u2, v2) = (-20, 70, 161, 134)
+	(x3, y3, u3, v3) = (10, 20, 548, 394)
+	(x4, y4, u4, v4) = (-10, 20, 99, 402)
 
 	A = np.array([[x1, y1, 1, 0, 0, 0, -u1 * x1, -u1 * y1],
 	              [0, 0, 0, x1, y1, 1, -v1 * x1, -v1 * y1],
@@ -654,7 +654,7 @@ def monteCarloLocalisation(waypoints, particles, canvas):
 						h = stats[i, cv2.CC_STAT_HEIGHT]
 						area = stats[i, cv2.CC_STAT_AREA]
 						(cX, cY) = centroids[i]
-						if (area > 50):
+						if (area > 100):
 							#print("Component", i, "area", area, "Centroid", cX, cY)
 							#img = cv2.circle(img, (int(cX), int(cY)), 5, white, 3)
 							adjustedPixels = np.array([cX, cY, 1])
@@ -740,7 +740,7 @@ def initialiseMCL(waymarks, waypoints):
 
 waymark_list = np.array([(56, 23), (74.5, 82), (-37, 36)])
 #waymark_list = np.array([])
-waypoint_list = np.array([(90, 0), (80, 50), (0, 50), (0, 0)])
+waypoint_list = np.array([(80, 0), (90, 50), (0, 50), (0, 0)])
 #waypoint_list = np.array([(0, 50), (90, 50), (90, 0), (0, 0)])
 
 initialiseMCL(waymark_list, waypoint_list)
