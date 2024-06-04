@@ -583,7 +583,7 @@ def calculate_likelihood(x, y, theta, z):
 				difference = distance(z_x, z_y, x_waymark, y_waymark)
 				measured_distance = distance(x, y, z_x, z_y)
 				sd = 0.1 * measured_distance
-				likelihood = (math.e ** ((-(difference) ** 2) / (2 * sd ** 2))) + K
+				likelihood = (math.e ** (-(difference ** 2) / (2 * sd ** 2))) + K
 				if likelihood > best_likelihood:
 					best_likelihood = likelihood
 	return best_likelihood
@@ -738,7 +738,7 @@ def initialiseMCL(waymarks, waypoints):
 	particles = Particles()
 	monteCarloLocalisation(waypoints, particles, canvas)
 
-waymark_list = np.array([(56, 23), (93, 82), (130, -13), (-37, 36)])
+waymark_list = np.array([(56, 23), (74.5, 82), (-37, 36)])
 #waymark_list = np.array([])
 waypoint_list = np.array([(90, 0), (80, 50), (0, 50), (0, 0)])
 #waypoint_list = np.array([(0, 50), (90, 50), (90, 0), (0, 0)])
