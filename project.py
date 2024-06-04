@@ -708,12 +708,12 @@ def monteCarloLocalisation(waypoints, particles, canvas):
 				velocity_l_start = velocity_l_chosen
 				velocity_r_start = velocity_r_chosen
 				x_start, y_start, theta_start = particles.mean()
-"""
+				"""
 				cv2.imshow("Camera", img)
 
 				if cv2.waitKey(1) & 0xFF == ord('q'):
 					break
-"""
+				"""
 				end_calc = time.time()
 				calc_time = end_calc - start_calc
 				print("Calculation time: ", calc_time)
