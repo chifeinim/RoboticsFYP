@@ -24,7 +24,7 @@ pi = math.pi
 wheel_radius = 2.8 # cm
 wheel_distance = 14.25 # cm
 max_acceleration = wheel_radius * 9 * pi # cms^(-2)
-max_velocity = 0.6 * max_acceleration # cms^(-1)
+max_velocity = 0.45 * max_acceleration # cms^(-1)
 floor_modifier_move = 1.02 # 1.02 = hard floor, ? = carpet
 floor_modifier_rotate = 1.0 # 1.1 = hard floor, ? = carpet
 
@@ -213,7 +213,7 @@ def dynamicWindowApproach():
 		obstacles = []
 		starttime = time.time()
 
-		x_target, y_target = (112, 0) # We identify static target
+		x_target, y_target = (130, 0) # We identify static target
 
 		while True:
 			#obstacles = []
@@ -579,10 +579,10 @@ def calculate_likelihood(x, y, theta, z):
 	else:
 		(x_waymark, y_waymark) = waymark_list[0]
 		(z_x, z_y) = z
-		expected_distance = distance(x, y, x_waymark, y_waymark)
+		difference = distance(z_x, z_y, x_waymark, y_waymark)
 		measured_distance = distance(x, y, z_x, z_y)
 		sd = 0.1 * measured_distance
-		likelihood = (math.e ** ((-(measured_distance - expected_distance) ** 2) / (2 * sd ** 2))) + K
+		likelihood = (math.e ** ((-(difference) ** 2) / (2 * sd ** 2))) + K
 	return likelihood
 
 def monteCarloLocalisation(waypoints, particles, canvas):
