@@ -189,8 +189,8 @@ def predictMovement(velocity_l, velocity_r, x, y, theta, delta_time):
 	return (x_new, y_new, theta_new)
 
 def getTruePosition(x, y, theta, relative_x, relative_y):
-	true_x = x + relative_y * math.cos(theta) + relative_x * math.sin(theta)
-	true_y = y + relative_y * math.sin(theta) - relative_x * math.cos(theta)
+	true_x = x + relative_x * math.cos(theta) - relative_y * math.sin(theta)
+	true_y = y + relative_x * math.sin(theta) + relative_y * math.cos(theta)
 
 	return (true_x, true_y)
 
@@ -579,9 +579,10 @@ def calculate_likelihood(x, y, theta, z):
 		best_likelihood = K
 	else:
 		for (z_x, z_y) in z:
+			(z_world_x, z_world_y) = getTruePosition(x, y, theta, z_x, z_y)
 			for (x_waymark, y_waymark) in waymark_list:
-				difference = distance(z_x, z_y, x_waymark, y_waymark)
-				measured_distance = distance(x, y, z_x, z_y)
+				difference = distance(z_world_x, z_world_y, x_waymark, y_waymark)
+				measured_distance = distance(x, y, z_world_x, z_world_y)
 				sd = 0.1 * measured_distance
 				likelihood = (math.e ** (-(difference ** 2) / (2 * sd ** 2))) + K
 				if likelihood > best_likelihood:
@@ -617,6 +618,7 @@ def monteCarloLocalisation(waypoints, particles, canvas):
 					break
 
 				z = []
+				avg_waymarks = []
 				best_cost_benefit = -10000.0
 				start_calc = time.time()
 
@@ -661,8 +663,9 @@ def monteCarloLocalisation(waypoints, particles, canvas):
 							relativePosition = predictCoordinates(adjustedPixels)
 							relative_x = relativePosition[0]
 							relative_y = relativePosition[1]
-							(z_x, z_y) = getTruePosition(x_start, y_start, theta_start, relative_x, relative_y)
-							z.append((z_x, z_y))
+							z.append((relative_x, relative_y))
+							(avg_waymark_x, avg_waymark_y) = getTruePosition(x_start, y_start, theta_start, relative_x, relative_y)
+							avg_waymarks.append((avg_waymark_x, avg_waymark_y))
 
 				end_calc = time.time()
 				calc_time = end_calc - start_calc
@@ -693,8 +696,9 @@ def monteCarloLocalisation(waypoints, particles, canvas):
 				print("vl: " + str(velocity_l_chosen) + ", vr: " + str(velocity_r_chosen))
 				# New Particles code:
 				particles.move(velocity_l_chosen, velocity_r_chosen, delta_time)
-				if z:
-					print("Z DETECTED: --------------------------------------------> " + str(z))
+				#This z is purely symbolic, we actually have different z per particle
+				if avg_waymarks:
+					print("AVERAGE Z DETECTED: ------------------------------------> " + str(avg_waymarks))
 				particles.update_weights(z)
 				print("mean")
 				particles.resample()
