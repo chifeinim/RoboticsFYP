@@ -445,7 +445,7 @@ def calculateHomography():
 #     - it takes care of a proper scaling and coordinate transformation between
 #      the map frame of reference (in cm) and the display (in pixels)
 class Canvas:
-	def __init__(self,map_size=60):
+	def __init__(self,map_size=80):
 		self.map_size    = map_size    # in cm;
 		self.canvas_size = 768;         # in pixels;
 		self.margin      = 0.25*map_size
@@ -574,16 +574,19 @@ class Particles:
 
 def calculate_likelihood(x, y, theta, z):
 	K = 0.000001
+	best_likelihood = 0
 	if not z or waymark_list.size:
-		likelihood = K
+		best_likelihood = K
 	else:
-		(x_waymark, y_waymark) = waymark_list[0]
-		(z_x, z_y) = z
-		difference = distance(z_x, z_y, x_waymark, y_waymark)
-		measured_distance = distance(x, y, z_x, z_y)
-		sd = 0.1 * measured_distance
-		likelihood = (math.e ** ((-(difference) ** 2) / (2 * sd ** 2))) + K
-	return likelihood
+		for (z_x, z_y) in z:
+			for (x_waymark, y_waymark) in waymark_list:
+				difference = distance(z_x, z_y, x_waymark, y_waymark)
+				measured_distance = distance(x, y, z_x, z_y)
+				sd = 0.1 * measured_distance
+				likelihood = (math.e ** ((-(difference) ** 2) / (2 * sd ** 2))) + K
+				if likelihood > best_likelihood:
+					best_likelihood = likelihood
+	return best_likelihood
 
 def monteCarloLocalisation(waypoints, particles, canvas):
 	try:
@@ -690,7 +693,8 @@ def monteCarloLocalisation(waypoints, particles, canvas):
 				print("vl: " + str(velocity_l_chosen) + ", vr: " + str(velocity_r_chosen))
 				# New Particles code:
 				particles.move(velocity_l_chosen, velocity_r_chosen, delta_time)
-				print("z: ", z)
+				if z:
+					print("Z DETECTED: --------------------------------------------> " + str(z))
 				particles.update_weights(z)
 				print("mean")
 				particles.resample()
@@ -734,9 +738,9 @@ def initialiseMCL(waymarks, waypoints):
 	particles = Particles()
 	monteCarloLocalisation(waypoints, particles, canvas)
 
-waymark_list = np.array([(56, 23)])
+waymark_list = np.array([(56, 23), (93, 82), (130, -13), (-37, 36)])
 #waymark_list = np.array([])
-waypoint_list = np.array([(90, 0), (90, 50), (0, 50), (0, 0)])
+waypoint_list = np.array([(90, 0), (80, 50), (0, 50), (0, 0)])
 #waypoint_list = np.array([(0, 50), (90, 50), (90, 0), (0, 0)])
 
 initialiseMCL(waymark_list, waypoint_list)
