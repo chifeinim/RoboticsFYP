@@ -29,9 +29,9 @@ floor_modifier_move = 1.02 # 1.02 = hard floor, ? = carpet
 floor_modifier_rotate = 1.0 # 1.1 = hard floor, ? = carpet
 
 camera_homography_far = np.array([
-	( 2.80376281e+00, -8.24497129e-02, -8.78552444e+02),
-	(-5.66343586e-02, -1.00352252e+00,  1.67727228e+03),
-	( 8.24903567e-04,  1.55051755e-01,  1.00000000e+00)], dtype = float)
+	( 1.09995243e+00, -2.45344201e-02, -3.54275058e+02),
+	( 1.66994841e-02, -4.30310524e-01,  6.54377573e+02),
+	( 8.34974207e-04,  5.96069256e-02,  1.00000000e+00)], dtype = float)
 
 # x1: float (cm)
 # y1: float (cm)
@@ -409,10 +409,10 @@ def colourTest():
 	cv2.destroyAllWindows()
 
 def calculateHomography():
-	(x1, y1, u1, v1) = (20, 70, 472, 131)
-	(x2, y2, u2, v2) = (-20, 70, 161, 134)
-	(x3, y3, u3, v3) = (10, 20, 548, 394)
-	(x4, y4, u4, v4) = (-10, 20, 99, 402)
+	(x1, y1, u1, v1) = (28, 70, 547, 122)
+	(x2, y2, u2, v2) = (-28, 70, 106, 126)
+	(x3, y3, u3, v3) = (10, 20, 556, 391)
+	(x4, y4, u4, v4) = (-10, 20, 109, 391)
 
 	A = np.array([[x1, y1, 1, 0, 0, 0, -u1 * x1, -u1 * y1],
 	              [0, 0, 0, x1, y1, 1, -v1 * x1, -v1 * y1],
@@ -654,7 +654,7 @@ def monteCarloLocalisation(waypoints, particles, canvas):
 						h = stats[i, cv2.CC_STAT_HEIGHT]
 						area = stats[i, cv2.CC_STAT_AREA]
 						(cX, cY) = centroids[i]
-						if (area > 100):
+						if (area > 125):
 							#print("Component", i, "area", area, "Centroid", cX, cY)
 							#img = cv2.circle(img, (int(cX), int(cY)), 5, white, 3)
 							adjustedPixels = np.array([cX, cY, 1])
@@ -738,7 +738,7 @@ def initialiseMCL(waymarks, waypoints):
 	particles = Particles()
 	monteCarloLocalisation(waypoints, particles, canvas)
 
-waymark_list = np.array([(56, 23), (74.5, 82), (-37, 36)])
+waymark_list = np.array([(56, 23), (93, 82), (-37, 36), (130, -13)])
 #waymark_list = np.array([])
 waypoint_list = np.array([(80, 0), (90, 50), (0, 50), (0, 0)])
 #waypoint_list = np.array([(0, 50), (90, 50), (90, 0), (0, 0)])
