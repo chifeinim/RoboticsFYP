@@ -305,11 +305,15 @@ def dynamicWindowApproach():
 		cv2.destroyAllWindows()
 
 # pixels: numpy (3x1) array [pix_x, pix_y, 1]
-# return: numpy (3x1) array [coord_x, coord_y, 1]
+# return: numpy (2x1) array [coord_x, coord_y] in conventional robot frame
 def predictCoordinates(pixels):
 	estimate = np.dot(camera_homography_far, pixels)
+	#Currently the coordinates are in standard cartesian with robot facing positive y when theta=0.
 	estimate = estimate / estimate[2]
-	return estimate
+	#We convert into conventional robot frame, with robot facing positive x when theta=0.
+	conventional_x =  estimate[1]
+	conventional_y = -estimate[0]
+	return np.array([conventional_x, conventional_y])
 
 def enableCamera():
 	picam2 = Picamera2()
