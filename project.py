@@ -529,9 +529,9 @@ class Particles:
 				self.data[k][2] += ((velocity_r - velocity_l * delta_time / wheel_distance) + g[k])
 
 		else:
-			arc_radius_sd = 0.005 # for every 1cm
+			arc_radius_sd = 0.01 # for every 1cm
 			arc_radius = wheel_distance / 2 * (velocity_l + velocity_r) / (velocity_r - velocity_l)
-			delta_theta_sd = 0.002 * pi / 180 # for every 1 radian
+			delta_theta_sd = 0.004 * pi / 180 # for every 1 radian
 			delta_theta = (velocity_r - velocity_l) * delta_time / wheel_distance
 			h = np.random.normal(0, abs(arc_radius_sd * arc_radius), self.n)
 			i = np.random.normal(0, abs(delta_theta_sd * delta_theta), self.n)
