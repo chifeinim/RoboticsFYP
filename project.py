@@ -28,6 +28,7 @@ max_velocity = 0.45 * max_acceleration # cms^(-1)
 floor_modifier_move = 1.02 # 1.02 = hard floor, ? = carpet
 floor_modifier_rotate = 1.0 # 1.1 = hard floor, ? = carpet
 
+#make new homography for far, mid, close, use when appropriate. either 3 or 9.
 camera_homography_far = np.array([
 	( 7.66809785e-01, -2.85697817e-02, -2.33552530e+02),
 	(-9.08274197e-03, -2.99672902e-01,  4.58335936e+02),
@@ -752,7 +753,7 @@ def initialiseMCL(waymarks, waypoints):
 	particles = Particles()
 	monteCarloLocalisation(waypoints, particles, canvas)
 
-waymark_list = np.array([(56, 23), (93, 82), (-37, 36), (130, -13), (56, 82)])
+waymark_list = np.array([(56, 23), (93, 82), (-37, 36), (130, -13), (0, 82)])
 #waymark_list = np.array([])
 waypoint_list = np.array([(80, 0), (90, 50), (0, 50), (0, 0)])
 #waypoint_list = np.array([(0, 50), (90, 50), (90, 0), (0, 0)])
