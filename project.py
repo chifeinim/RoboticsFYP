@@ -498,9 +498,9 @@ class Particles:
 	def initialise(self, x, y, theta):
 		self.data = np.zeros((self.n, 4))
 
-		ex = np.random.normal(0, 0.2, self.n)
-		ey = np.random.normal(0, 0.2, self.n)
-		f = np.random.normal(0, 0.2, self.n)
+		ex = np.random.normal(0, 1, self.n)
+		ey = np.random.normal(0, 1, self.n)
+		f = np.random.normal(0, 1, self.n)
 
 		for k in range(self.n):
 			self.data[k][0] = x + ex[k]
@@ -751,6 +751,7 @@ def initialiseMCL(waymarks, waypoints):
 
 	my_map.draw(canvas)
 	particles = Particles()
+	particles.initialise()
 	monteCarloLocalisation(waypoints, particles, canvas)
 
 waymark_list = np.array([(56, 23), (93, 82), (-37, 36), (130, -13), (0, 82)])
@@ -758,8 +759,8 @@ waymark_list = np.array([(56, 23), (93, 82), (-37, 36), (130, -13), (0, 82)])
 waypoint_list = np.array([(80, 0), (90, 50), (0, 50), (0, 0)])
 #waypoint_list = np.array([(0, 50), (90, 50), (90, 0), (0, 0)])
 
-#initialiseMCL(waymark_list, waypoint_list)
+initialiseMCL(waymark_list, waypoint_list)
 #dynamicWindowApproach()
-enableCamera()
+#enableCamera()
 #calculateHomography()
 BP.reset_all()
