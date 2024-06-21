@@ -500,7 +500,7 @@ class Particles:
 
 		ex = np.random.normal(0, 0.2, self.n)
 		ey = np.random.normal(0, 0.2, self.n)
-		f = np.random.normal(0, 0.1, self.n)
+		f = np.random.normal(0, 0.025, self.n)
 
 		for k in range(self.n):
 			self.data[k][0] = x + ex[k]
