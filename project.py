@@ -123,7 +123,7 @@ def moveStraightToWaypoint(x, y, theta, x_target, y_target):
 def costBenefit(x, y, x_new, y_new, x_obstacle, y_obstacle, x_target, y_target):
 	weight_benefit = 12
 	weight_cost = 16
-	safe_distance = 18 # cm
+	safe_distance = 10 # cm
 	radius_robot = wheel_distance / 2 # cm
 	radius_obstacle = 2 # cm
 
@@ -214,10 +214,14 @@ def dynamicWindowApproach():
 		obstacles = []
 		starttime = time.time()
 
-		x_target, y_target = (130, 0) # We identify static target
+		x_target, y_target = (200, 0) # We identify static target
 
 		while True:
 			#obstacles = []
+			if distance(x_target, y_target, x_start, y_start) <3:
+				print("END TIME")
+				print(str(time.time() - starttime))
+				break
 			best_cost_benefit = -10000.0
 			start_calc = time.time()
 
@@ -753,8 +757,8 @@ waymark_list = np.array([(56, 23), (93, 82), (-37, 36), (130, -13), (0, 82)])
 waypoint_list = np.array([(80, 0), (90, 50), (0, 50), (0, 0)])
 #waypoint_list = np.array([(0, 50), (90, 50), (90, 0), (0, 0)])
 
-initialiseMCL(waymark_list, waypoint_list)
-#dynamicWindowApproach()
+#initialiseMCL(waymark_list, waypoint_list)
+dynamicWindowApproach()
 #enableCamera()
 #calculateHomography()
 BP.reset_all()
