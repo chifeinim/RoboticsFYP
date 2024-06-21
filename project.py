@@ -688,27 +688,21 @@ def monteCarloLocalisation(waypoints, particles, canvas):
 								velocity_r_chosen = velocity_r
 								best_cost_benefit = cost_benefit
 
-				# We do this to make turning tighter. Has no effect on particle calculations.
-				difference = abs(velocity_l_chosen - velocity_r_chosen)
-				sum = abs(velocity_l_chosen + velocity_r_chosen)
-				if (difference < 0.000001 or sum < 0.000001):
-					BP.set_motor_dps(leftMotor, (velocity_l_chosen / wheel_radius) * (180 / pi))
-					BP.set_motor_dps(rightMotor, (velocity_r_chosen / wheel_radius) * (180 / pi))
-				else:
-					BP.set_motor_dps(leftMotor, floor_modifier_rotate * (velocity_l_chosen / wheel_radius) * (180 / pi))
-					BP.set_motor_dps(rightMotor, floor_modifier_rotate * (velocity_r_chosen / wheel_radius) * (180 / pi))
+				#This z is purely symbolic, we actually have different z per particle
+                                if avg_waymarks:
+                                        print("AVERAGE Z DETECTED: ------------------------------------> " + str(avg_w>
+                                particles.update_weights(z)
+                                print("mean")
+                                particles.resample()
+                                print(particles.mean())
+
+				BP.set_motor_dps(leftMotor, (velocity_l_chosen / wheel_radius) * (180 / pi))
+				BP.set_motor_dps(rightMotor, (velocity_r_chosen / wheel_radius) * (180 / pi))
 
 				print("vl: " + str(velocity_l_chosen) + ", vr: " + str(velocity_r_chosen))
 				# New Particles code:
 				particles.move(velocity_l_chosen, velocity_r_chosen, delta_time)
-				#This z is purely symbolic, we actually have different z per particle
-				if avg_waymarks:
-					print("AVERAGE Z DETECTED: ------------------------------------> " + str(avg_waymarks))
-				particles.update_weights(z)
-				print("mean")
-				particles.resample()
-				print(particles.mean())
-				particles.draw(canvas)
+                                particles.draw(canvas)
 
 				velocity_l_start = velocity_l_chosen
 				velocity_r_start = velocity_r_chosen
