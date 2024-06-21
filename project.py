@@ -689,12 +689,12 @@ def monteCarloLocalisation(waypoints, particles, canvas):
 								best_cost_benefit = cost_benefit
 
 				#This z is purely symbolic, we actually have different z per particle
-                                if avg_waymarks:
-                                        print("AVERAGE Z DETECTED: ------------------------------------> " + str(avg_w>
-                                particles.update_weights(z)
-                                print("mean")
-                                particles.resample()
-                                print(particles.mean())
+				if avg_waymarks:
+					print("AVERAGE Z DETECTED: ------------------------------------> " + str(avg_w>
+				particles.update_weights(z)
+				print("mean")
+				particles.resample()
+				print(particles.mean())
 
 				BP.set_motor_dps(leftMotor, (velocity_l_chosen / wheel_radius) * (180 / pi))
 				BP.set_motor_dps(rightMotor, (velocity_r_chosen / wheel_radius) * (180 / pi))
