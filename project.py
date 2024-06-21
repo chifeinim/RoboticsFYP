@@ -690,7 +690,7 @@ def monteCarloLocalisation(waypoints, particles, canvas):
 
 				#This z is purely symbolic, we actually have different z per particle
 				if avg_waymarks:
-					print("AVERAGE Z DETECTED: ------------------------------------> " + str(avg_w))
+					print("AVERAGE Z DETECTED: ------------------------------------> " + str(avg_waymarks))
 				particles.update_weights(z)
 				print("mean")
 				particles.resample()
